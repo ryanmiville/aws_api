@@ -1,10 +1,12 @@
 # aws_request
 
+An AWS request builder for Gleam, generated using [aws_codegen](https://github.com/ryanmiville/aws_codegen) and built on top of [aws4_request](https://github.com/lpil/aws4_request).
+
 [![Package Version](https://img.shields.io/hexpm/v/aws_request)](https://hex.pm/packages/aws_request)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/aws_request/)
 
 ```sh
-gleam add aws_request@1
+gleam add aws_request
 ```
 ```gleam
 import aws_request/config
@@ -14,12 +16,14 @@ import gleam/httpc
 import gleam/result
 
 pub fn main() {
+  // create a client for the AWS service, such as DynamoDB
   let assert Ok(dynamo_client) =
     config.new()
     |> config.with_region("us-east-1")
     |> config.build
     |> result.map(dynamodb.new)
 
+  // Create the request body if necessary
   let body =
     "{
     \"TableName\": \"people\",
@@ -27,13 +31,15 @@ pub fn main() {
     }"
     |> bit_array.from_string
 
-  let response =
-    dynamodb.get_item(dynamo_client, body)
-    |> httpc.send_bits
+    // each API endpoint is a function in the service's module
+    let req = dynamodb.get_item(dynamo_client, body)
+
+    // use a gleam_http client adapter to send the request
+    let resp = httpc.send_bits(req)
 }
 ```
 
-```sh
+```gleam
 Ok(Response(
   200,
   [
@@ -57,3 +63,6 @@ Ok(Response(
   "{"Item":{"name":{"S":"Ryan"}}}",
 ))
 ```
+
+## Project Goals
+`aws_request` is NOT an AWS SDK for Gleam. It intends to be a base for idiomatic Gleam AWS SDKs.
