@@ -7,18 +7,53 @@
 gleam add aws_request@1
 ```
 ```gleam
-import aws_request
+import aws_request/config
+import aws_request/service/dynamodb
+import gleam/bit_array
+import gleam/httpc
+import gleam/result
 
 pub fn main() {
-  // TODO: An example of the project in use
+  let assert Ok(dynamo_client) =
+    config.new()
+    |> config.with_region("us-east-1")
+    |> config.build
+    |> result.map(dynamodb.new)
+
+  let body =
+    "{
+    \"TableName\": \"people\",
+    \"Key\": { \"name\": { \"S\": \"Ryan\" } }
+    }"
+    |> bit_array.from_string
+
+  let response =
+    dynamodb.get_item(dynamo_client, body)
+    |> httpc.send_bits
 }
 ```
 
-Further documentation can be found at <https://hexdocs.pm/aws_request>.
-
-## Development
-
 ```sh
-gleam run   # Run the project
-gleam test  # Run the tests
+Ok(Response(
+  200,
+  [
+    #("connection", "keep-alive"),
+    #(
+      "date",
+      "Mon, 26 Aug 2024 01:14:37 GMT",
+    ),
+    #("server", "Server"),
+    #("content-length", "48"),
+    #(
+      "content-type",
+      "application/x-amz-json-1.0",
+    ),
+    #(
+      "x-amzn-requestid",
+      "9UDMAF5C9T46D39RJSCHUB7IMFVV4KQNSO5AEMVJF66Q9ASUAAJG",
+    ),
+    #("x-amz-crc32", "3152510195"),
+  ],
+  "{"Item":{"name":{"S":"Ryan"}}}",
+))
 ```
