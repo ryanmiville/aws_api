@@ -17,11 +17,12 @@ import gleam/result
 
 pub fn main() {
   // create a client for the AWS service, such as DynamoDB
-  let assert Ok(dynamo_client) =
-    config.new()
-    |> config.with_region("us-east-1")
-    |> config.build
-    |> result.map(dynamodb.new)
+  let dynamo_client =
+    dynamodb.new(
+      access_key_id: "AKIDEXAMPLE",
+      secret_access_key: "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+      region: "us-east-1",
+    )
 
   // Create the request body if necessary
   let body =
