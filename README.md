@@ -1,16 +1,16 @@
-# aws_request
+# aws_api
 
 An AWS request builder for Gleam, generated using [aws_codegen](https://github.com/ryanmiville/aws_codegen) and built on top of [aws4_request](https://github.com/lpil/aws4_request).
 
-[![Package Version](https://img.shields.io/hexpm/v/aws_request)](https://hex.pm/packages/aws_request)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/aws_request/)
+[![Package Version](https://img.shields.io/hexpm/v/aws_api)](https://hex.pm/packages/aws_api)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/aws_api/)
 
 ```sh
-gleam add aws_request
+gleam add aws_api
 ```
 
 ```gleam
-import aws_request/service/dynamodb
+import aws_api/service/dynamodb
 import gleam/bit_array
 import gleam/httpc
 
@@ -66,7 +66,7 @@ Ok(Response(
 
 ## Project Goals
 
-`aws_request` is NOT an AWS SDK for Gleam. It intends to be a base for idiomatic SDKs.
+`aws_api` is NOT an AWS SDK for Gleam. It intends to be a base for idiomatic SDKs.
 
 ## Missing features
 

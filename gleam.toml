@@ -1,9 +1,9 @@
-name = "aws_request"
+name = "aws_api"
 version = "0.1.0"
 
 description = "An AWS request builder for Gleam"
 licences = ["Apache-2.0"]
-repository = { type = "github", user = "ryanmiville", repo = "aws_request" }
+repository = { type = "github", user = "ryanmiville", repo = "aws_api" }
 
 [dependencies]
 gleam_stdlib = ">= 0.34.0 and < 2.0.0"
