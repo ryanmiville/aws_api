@@ -8,12 +8,11 @@ An AWS request builder for Gleam, generated using [aws_codegen](https://github.c
 ```sh
 gleam add aws_request
 ```
+
 ```gleam
-import aws_request/config
 import aws_request/service/dynamodb
 import gleam/bit_array
 import gleam/httpc
-import gleam/result
 
 pub fn main() {
   // create a client for the AWS service, such as DynamoDB
@@ -61,9 +60,17 @@ Ok(Response(
     ),
     #("x-amz-crc32", "3152510195"),
   ],
-  "{"Item":{"name":{"S":"Ryan"}}}",
+  "{\"Item\":{\"name\":{\"S\":\"Ryan\"}}}",
 ))
 ```
 
 ## Project Goals
-`aws_request` is NOT an AWS SDK for Gleam. It intends to be a base for idiomatic Gleam AWS SDKs.
+
+`aws_request` is NOT an AWS SDK for Gleam. It intends to be a base for idiomatic SDKs.
+
+## Missing features
+
+- [ ] other AWS partitions (gov, cn, etc.)
+- [ ] fips and dualstack endpoints
+- [ ] docs
+- [ ] tests
