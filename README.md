@@ -1,6 +1,6 @@
 # aws_api
 
-An AWS request builder for Gleam, generated using [aws_codegen](https://github.com/ryanmiville/aws_codegen) and built on top of [aws4_request](https://github.com/lpil/aws4_request).
+A `gleam_http` request builder for AWS service APIs, generated using [aws_codegen](https://github.com/ryanmiville/aws_codegen) and built on top of [aws4_request](https://github.com/lpil/aws4_request).
 
 [![Package Version](https://img.shields.io/hexpm/v/aws_api)](https://hex.pm/packages/aws_api)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/aws_api/)
