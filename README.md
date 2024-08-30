@@ -10,7 +10,7 @@ gleam add aws_api
 ```
 
 ```gleam
-import aws_api/service/dynamodb
+import aws_api/dynamodb
 import gleam/bit_array
 import gleam/httpc
 
