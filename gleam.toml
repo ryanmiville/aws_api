@@ -1,5 +1,5 @@
 name = "aws_api"
-version = "0.1.0"
+version = "0.1.1"
 
 description = "A request builder for AWS services"
 licences = ["Apache-2.0"]
