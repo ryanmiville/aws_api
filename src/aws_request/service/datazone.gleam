@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
 import gleam/option.{type Option}
@@ -15,18 +15,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn accept_predictions(
@@ -48,7 +57,8 @@ pub fn accept_predictions(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -76,7 +86,8 @@ pub fn accept_subscription_request(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -107,7 +118,8 @@ pub fn associate_environment_role(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -135,7 +147,8 @@ pub fn cancel_subscription(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -163,7 +176,8 @@ pub fn create_asset_filter(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -183,7 +197,8 @@ pub fn create_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -211,7 +226,8 @@ pub fn create_environment_action(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -232,7 +248,8 @@ pub fn create_environment_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -253,7 +270,8 @@ pub fn create_group_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -274,7 +292,8 @@ pub fn create_listing_change_set(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -294,7 +313,8 @@ pub fn create_project(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -322,7 +342,8 @@ pub fn create_project_membership(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -343,7 +364,8 @@ pub fn create_subscription_grant(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -364,7 +386,8 @@ pub fn create_subscription_request(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -392,7 +415,8 @@ pub fn create_subscription_target(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -413,7 +437,8 @@ pub fn create_user_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -444,7 +469,8 @@ pub fn delete_asset_filter(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -472,7 +498,8 @@ pub fn delete_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -503,7 +530,8 @@ pub fn delete_environment_action(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -531,7 +559,8 @@ pub fn delete_environment_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -559,7 +588,8 @@ pub fn delete_project(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -587,7 +617,8 @@ pub fn delete_project_membership(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -615,7 +646,8 @@ pub fn delete_subscription_grant(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -643,7 +675,8 @@ pub fn delete_subscription_request(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -674,7 +707,8 @@ pub fn delete_subscription_target(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -705,7 +739,8 @@ pub fn delete_time_series_data_points(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -736,7 +771,8 @@ pub fn disassociate_environment_role(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -767,7 +803,8 @@ pub fn get_asset_filter(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -795,7 +832,8 @@ pub fn get_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -826,7 +864,8 @@ pub fn get_environment_action(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -854,7 +893,8 @@ pub fn get_environment_blueprint(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -882,7 +922,8 @@ pub fn get_environment_credentials(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -910,7 +951,8 @@ pub fn get_environment_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -938,7 +980,8 @@ pub fn get_group_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -959,7 +1002,8 @@ pub fn get_iam_portal_login_url(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -987,7 +1031,8 @@ pub fn get_lineage_node(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1015,7 +1060,8 @@ pub fn get_project(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1043,7 +1089,8 @@ pub fn get_subscription(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1071,7 +1118,8 @@ pub fn get_subscription_grant(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1099,7 +1147,8 @@ pub fn get_subscription_request_details(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1130,7 +1179,8 @@ pub fn get_subscription_target(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1164,7 +1214,8 @@ pub fn get_time_series_data_point(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1192,7 +1243,8 @@ pub fn get_user_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1220,7 +1272,8 @@ pub fn list_asset_filters(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1248,7 +1301,8 @@ pub fn list_asset_revisions(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1276,7 +1330,8 @@ pub fn list_data_product_revisions(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1304,7 +1359,8 @@ pub fn list_data_source_run_activities(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1332,7 +1388,8 @@ pub fn list_environment_actions(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1353,7 +1410,8 @@ pub fn list_environment_blueprints(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1374,7 +1432,8 @@ pub fn list_environment_profiles(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1394,7 +1453,8 @@ pub fn list_environments(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1422,7 +1482,8 @@ pub fn list_lineage_node_history(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1443,7 +1504,8 @@ pub fn list_notifications(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1471,7 +1533,8 @@ pub fn list_project_memberships(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1491,7 +1554,8 @@ pub fn list_projects(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1512,7 +1576,8 @@ pub fn list_subscription_grants(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1533,7 +1598,8 @@ pub fn list_subscription_requests(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1554,7 +1620,8 @@ pub fn list_subscriptions(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1582,7 +1649,8 @@ pub fn list_subscription_targets(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1602,7 +1670,8 @@ pub fn list_tags_for_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1633,7 +1702,8 @@ pub fn list_time_series_data_points(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1655,7 +1725,8 @@ pub fn post_lineage_event(
   let headers = [#("content-type", "application/octet-stream"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1686,7 +1757,8 @@ pub fn post_time_series_data_points(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1714,7 +1786,8 @@ pub fn reject_predictions(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1742,7 +1815,8 @@ pub fn reject_subscription_request(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1770,7 +1844,8 @@ pub fn revoke_subscription(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1790,7 +1865,8 @@ pub fn search(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1811,7 +1887,8 @@ pub fn search_group_profiles(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1832,7 +1909,8 @@ pub fn search_listings(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1852,7 +1930,8 @@ pub fn search_types(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1873,7 +1952,8 @@ pub fn search_user_profiles(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1893,7 +1973,8 @@ pub fn tag_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1913,7 +1994,8 @@ pub fn untag_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -1944,7 +2026,8 @@ pub fn update_asset_filter(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -1972,7 +2055,8 @@ pub fn update_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -2003,7 +2087,8 @@ pub fn update_environment_action(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -2031,7 +2116,8 @@ pub fn update_environment_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -2059,7 +2145,8 @@ pub fn update_group_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2087,7 +2174,8 @@ pub fn update_project(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -2118,7 +2206,8 @@ pub fn update_subscription_grant_status(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -2146,7 +2235,8 @@ pub fn update_subscription_request(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -2177,7 +2267,8 @@ pub fn update_subscription_target(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -2205,7 +2296,8 @@ pub fn update_user_profile(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,

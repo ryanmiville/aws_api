@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
 import gleam/option.{type Option}
@@ -15,18 +15,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn create_environment(
@@ -39,7 +48,8 @@ pub fn create_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -67,7 +77,8 @@ pub fn create_kx_changeset(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -87,7 +98,8 @@ pub fn create_kx_cluster(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -107,7 +119,8 @@ pub fn create_kx_database(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -135,7 +148,8 @@ pub fn create_kx_dataview(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -154,7 +168,8 @@ pub fn create_kx_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -175,7 +190,8 @@ pub fn create_kx_scaling_group(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -195,7 +211,8 @@ pub fn create_kx_user(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -215,7 +232,8 @@ pub fn create_kx_volume(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -235,7 +253,8 @@ pub fn delete_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -263,7 +282,8 @@ pub fn delete_kx_cluster(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -294,7 +314,8 @@ pub fn delete_kx_cluster_node(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -322,7 +343,8 @@ pub fn delete_kx_database(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -353,7 +375,8 @@ pub fn delete_kx_dataview(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -373,7 +396,8 @@ pub fn delete_kx_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -401,7 +425,8 @@ pub fn delete_kx_scaling_group(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -429,7 +454,8 @@ pub fn delete_kx_user(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -457,7 +483,8 @@ pub fn delete_kx_volume(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -477,7 +504,8 @@ pub fn get_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -508,7 +536,8 @@ pub fn get_kx_changeset(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -536,7 +565,8 @@ pub fn get_kx_cluster(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -557,7 +587,8 @@ pub fn get_kx_connection_string(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -585,7 +616,8 @@ pub fn get_kx_database(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -616,7 +648,8 @@ pub fn get_kx_dataview(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -636,7 +669,8 @@ pub fn get_kx_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -664,7 +698,8 @@ pub fn get_kx_scaling_group(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -692,7 +727,8 @@ pub fn get_kx_user(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -720,7 +756,8 @@ pub fn get_kx_volume(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -739,7 +776,8 @@ pub fn list_environments(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -767,7 +805,8 @@ pub fn list_kx_changesets(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -795,7 +834,8 @@ pub fn list_kx_cluster_nodes(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -815,7 +855,8 @@ pub fn list_kx_clusters(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -835,7 +876,8 @@ pub fn list_kx_databases(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -863,7 +905,8 @@ pub fn list_kx_dataviews(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -882,7 +925,8 @@ pub fn list_kx_environments(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -903,7 +947,8 @@ pub fn list_kx_scaling_groups(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -923,7 +968,8 @@ pub fn list_kx_users(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -943,7 +989,8 @@ pub fn list_kx_volumes(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -963,7 +1010,8 @@ pub fn list_tags_for_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -983,7 +1031,8 @@ pub fn tag_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1003,7 +1052,8 @@ pub fn untag_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -1023,7 +1073,8 @@ pub fn update_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1051,7 +1102,8 @@ pub fn update_kx_cluster_code_configuration(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1079,7 +1131,8 @@ pub fn update_kx_cluster_databases(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1107,7 +1160,8 @@ pub fn update_kx_database(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1138,7 +1192,8 @@ pub fn update_kx_dataview(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1158,7 +1213,8 @@ pub fn update_kx_environment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1178,7 +1234,8 @@ pub fn update_kx_environment_network(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1206,7 +1263,8 @@ pub fn update_kx_user(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1234,7 +1292,8 @@ pub fn update_kx_volume(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,

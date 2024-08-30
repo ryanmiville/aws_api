@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
 import gleam/option.{type Option}
@@ -15,18 +15,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn accept_resource_grouping_recommendations(
@@ -39,7 +48,8 @@ pub fn accept_resource_grouping_recommendations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -58,7 +68,8 @@ pub fn add_draft_app_version_resource_mappings(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -77,7 +88,8 @@ pub fn batch_update_recommendation_status(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -96,7 +108,8 @@ pub fn create_app(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -115,7 +128,8 @@ pub fn create_app_version_app_component(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -134,7 +148,8 @@ pub fn create_app_version_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -153,7 +168,8 @@ pub fn create_recommendation_template(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -172,7 +188,8 @@ pub fn create_resiliency_policy(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -191,7 +208,8 @@ pub fn delete_app(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -210,7 +228,8 @@ pub fn delete_app_assessment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -229,7 +248,8 @@ pub fn delete_app_input_source(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -248,7 +268,8 @@ pub fn delete_app_version_app_component(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -267,7 +288,8 @@ pub fn delete_app_version_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -286,7 +308,8 @@ pub fn delete_recommendation_template(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -305,7 +328,8 @@ pub fn delete_resiliency_policy(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -324,7 +348,8 @@ pub fn describe_app(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -343,7 +368,8 @@ pub fn describe_app_assessment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -362,7 +388,8 @@ pub fn describe_app_version(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -381,7 +408,8 @@ pub fn describe_app_version_app_component(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -400,7 +428,8 @@ pub fn describe_app_version_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -420,7 +449,8 @@ pub fn describe_app_version_resources_resolution_status(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -439,7 +469,8 @@ pub fn describe_app_version_template(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -459,7 +490,8 @@ pub fn describe_draft_app_version_resources_import_status(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -478,7 +510,8 @@ pub fn describe_resiliency_policy(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -497,7 +530,8 @@ pub fn describe_resource_grouping_recommendation_task(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -516,7 +550,8 @@ pub fn import_resources_to_draft_app_version(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -535,7 +570,8 @@ pub fn list_alarm_recommendations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -554,7 +590,8 @@ pub fn list_app_assessment_compliance_drifts(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -573,7 +610,8 @@ pub fn list_app_assessment_resource_drifts(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -592,7 +630,8 @@ pub fn list_app_assessments(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -611,7 +650,8 @@ pub fn list_app_component_compliances(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -630,7 +670,8 @@ pub fn list_app_component_recommendations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -649,7 +690,8 @@ pub fn list_app_input_sources(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -668,7 +710,8 @@ pub fn list_apps(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -687,7 +730,8 @@ pub fn list_app_version_app_components(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -706,7 +750,8 @@ pub fn list_app_version_resource_mappings(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -725,7 +770,8 @@ pub fn list_app_version_resources(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -744,7 +790,8 @@ pub fn list_app_versions(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -763,7 +810,8 @@ pub fn list_recommendation_templates(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -782,7 +830,8 @@ pub fn list_resiliency_policies(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -801,7 +850,8 @@ pub fn list_resource_grouping_recommendations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -820,7 +870,8 @@ pub fn list_sop_recommendations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -839,7 +890,8 @@ pub fn list_suggested_resiliency_policies(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -859,7 +911,8 @@ pub fn list_tags_for_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -878,7 +931,8 @@ pub fn list_test_recommendations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -897,7 +951,8 @@ pub fn list_unsupported_app_version_resources(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -916,7 +971,8 @@ pub fn publish_app_version(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -935,7 +991,8 @@ pub fn put_draft_app_version_template(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -954,7 +1011,8 @@ pub fn reject_resource_grouping_recommendations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -973,7 +1031,8 @@ pub fn remove_draft_app_version_resource_mappings(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -992,7 +1051,8 @@ pub fn resolve_app_version_resources(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1011,7 +1071,8 @@ pub fn start_app_assessment(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1030,7 +1091,8 @@ pub fn start_resource_grouping_recommendation_task(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1050,7 +1112,8 @@ pub fn tag_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1070,7 +1133,8 @@ pub fn untag_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -1089,7 +1153,8 @@ pub fn update_app(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1108,7 +1173,8 @@ pub fn update_app_version(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1127,7 +1193,8 @@ pub fn update_app_version_app_component(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1146,7 +1213,8 @@ pub fn update_app_version_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1165,7 +1233,8 @@ pub fn update_resiliency_policy(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,

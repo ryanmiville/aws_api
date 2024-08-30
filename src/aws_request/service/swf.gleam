@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -16,28 +16,38 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn count_closed_workflow_executions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CountClosedWorkflowExecutions"
+  let target = metadata.service_id <> ".CountClosedWorkflowExecutions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -50,10 +60,11 @@ pub fn count_open_workflow_executions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CountOpenWorkflowExecutions"
+  let target = metadata.service_id <> ".CountOpenWorkflowExecutions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -66,10 +77,11 @@ pub fn count_pending_activity_tasks(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CountPendingActivityTasks"
+  let target = metadata.service_id <> ".CountPendingActivityTasks"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -82,10 +94,11 @@ pub fn count_pending_decision_tasks(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CountPendingDecisionTasks"
+  let target = metadata.service_id <> ".CountPendingDecisionTasks"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -98,10 +111,11 @@ pub fn delete_activity_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteActivityType"
+  let target = metadata.service_id <> ".DeleteActivityType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -114,10 +128,11 @@ pub fn delete_workflow_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteWorkflowType"
+  let target = metadata.service_id <> ".DeleteWorkflowType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -130,10 +145,11 @@ pub fn deprecate_activity_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeprecateActivityType"
+  let target = metadata.service_id <> ".DeprecateActivityType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -146,10 +162,11 @@ pub fn deprecate_domain(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeprecateDomain"
+  let target = metadata.service_id <> ".DeprecateDomain"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -162,10 +179,11 @@ pub fn deprecate_workflow_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeprecateWorkflowType"
+  let target = metadata.service_id <> ".DeprecateWorkflowType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -178,10 +196,11 @@ pub fn describe_activity_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeActivityType"
+  let target = metadata.service_id <> ".DescribeActivityType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -194,10 +213,11 @@ pub fn describe_domain(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeDomain"
+  let target = metadata.service_id <> ".DescribeDomain"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -210,10 +230,11 @@ pub fn describe_workflow_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeWorkflowExecution"
+  let target = metadata.service_id <> ".DescribeWorkflowExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -226,10 +247,11 @@ pub fn describe_workflow_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeWorkflowType"
+  let target = metadata.service_id <> ".DescribeWorkflowType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -242,10 +264,11 @@ pub fn get_workflow_execution_history(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetWorkflowExecutionHistory"
+  let target = metadata.service_id <> ".GetWorkflowExecutionHistory"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -258,10 +281,11 @@ pub fn list_activity_types(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListActivityTypes"
+  let target = metadata.service_id <> ".ListActivityTypes"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -274,10 +298,11 @@ pub fn list_closed_workflow_executions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListClosedWorkflowExecutions"
+  let target = metadata.service_id <> ".ListClosedWorkflowExecutions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -287,10 +312,11 @@ pub fn list_closed_workflow_executions(
 }
 
 pub fn list_domains(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListDomains"
+  let target = metadata.service_id <> ".ListDomains"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -303,10 +329,11 @@ pub fn list_open_workflow_executions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListOpenWorkflowExecutions"
+  let target = metadata.service_id <> ".ListOpenWorkflowExecutions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -319,10 +346,11 @@ pub fn list_tags_for_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListTagsForResource"
+  let target = metadata.service_id <> ".ListTagsForResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -335,10 +363,11 @@ pub fn list_workflow_types(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListWorkflowTypes"
+  let target = metadata.service_id <> ".ListWorkflowTypes"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -351,10 +380,11 @@ pub fn poll_for_activity_task(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".PollForActivityTask"
+  let target = metadata.service_id <> ".PollForActivityTask"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -367,10 +397,11 @@ pub fn poll_for_decision_task(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".PollForDecisionTask"
+  let target = metadata.service_id <> ".PollForDecisionTask"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -383,10 +414,11 @@ pub fn record_activity_task_heartbeat(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RecordActivityTaskHeartbeat"
+  let target = metadata.service_id <> ".RecordActivityTaskHeartbeat"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -399,10 +431,11 @@ pub fn register_activity_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RegisterActivityType"
+  let target = metadata.service_id <> ".RegisterActivityType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -415,10 +448,11 @@ pub fn register_domain(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RegisterDomain"
+  let target = metadata.service_id <> ".RegisterDomain"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -431,10 +465,11 @@ pub fn register_workflow_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RegisterWorkflowType"
+  let target = metadata.service_id <> ".RegisterWorkflowType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -447,10 +482,11 @@ pub fn request_cancel_workflow_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RequestCancelWorkflowExecution"
+  let target = metadata.service_id <> ".RequestCancelWorkflowExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -463,10 +499,11 @@ pub fn respond_activity_task_canceled(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RespondActivityTaskCanceled"
+  let target = metadata.service_id <> ".RespondActivityTaskCanceled"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -479,10 +516,11 @@ pub fn respond_activity_task_completed(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RespondActivityTaskCompleted"
+  let target = metadata.service_id <> ".RespondActivityTaskCompleted"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -495,10 +533,11 @@ pub fn respond_activity_task_failed(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RespondActivityTaskFailed"
+  let target = metadata.service_id <> ".RespondActivityTaskFailed"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -511,10 +550,11 @@ pub fn respond_decision_task_completed(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RespondDecisionTaskCompleted"
+  let target = metadata.service_id <> ".RespondDecisionTaskCompleted"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -527,10 +567,11 @@ pub fn signal_workflow_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".SignalWorkflowExecution"
+  let target = metadata.service_id <> ".SignalWorkflowExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -543,10 +584,11 @@ pub fn start_workflow_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartWorkflowExecution"
+  let target = metadata.service_id <> ".StartWorkflowExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -556,10 +598,11 @@ pub fn start_workflow_execution(
 }
 
 pub fn tag_resource(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".TagResource"
+  let target = metadata.service_id <> ".TagResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -572,10 +615,11 @@ pub fn terminate_workflow_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".TerminateWorkflowExecution"
+  let target = metadata.service_id <> ".TerminateWorkflowExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -588,10 +632,11 @@ pub fn undeprecate_activity_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UndeprecateActivityType"
+  let target = metadata.service_id <> ".UndeprecateActivityType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -604,10 +649,11 @@ pub fn undeprecate_domain(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UndeprecateDomain"
+  let target = metadata.service_id <> ".UndeprecateDomain"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -620,10 +666,11 @@ pub fn undeprecate_workflow_type(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UndeprecateWorkflowType"
+  let target = metadata.service_id <> ".UndeprecateWorkflowType"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -636,10 +683,11 @@ pub fn untag_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UntagResource"
+  let target = metadata.service_id <> ".UntagResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

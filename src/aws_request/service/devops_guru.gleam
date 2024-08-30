@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
 import gleam/option.{type Option}
@@ -15,18 +15,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn add_notification_channel(
@@ -39,7 +48,8 @@ pub fn add_notification_channel(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -59,7 +69,8 @@ pub fn delete_insight(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -78,7 +89,8 @@ pub fn describe_account_health(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -97,7 +109,8 @@ pub fn describe_account_overview(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -117,7 +130,8 @@ pub fn describe_anomaly(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -136,7 +150,8 @@ pub fn describe_event_sources_config(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -155,7 +170,8 @@ pub fn describe_feedback(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -175,7 +191,8 @@ pub fn describe_insight(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -194,7 +211,8 @@ pub fn describe_organization_health(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -213,7 +231,8 @@ pub fn describe_organization_overview(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -232,7 +251,8 @@ pub fn describe_organization_resource_collection_health(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -257,7 +277,8 @@ pub fn describe_resource_collection_health(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -276,7 +297,8 @@ pub fn describe_service_integration(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -295,7 +317,8 @@ pub fn get_cost_estimation(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -316,7 +339,8 @@ pub fn get_resource_collection(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -336,7 +360,8 @@ pub fn list_anomalies_for_insight(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -355,7 +380,8 @@ pub fn list_anomalous_log_groups(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -374,7 +400,8 @@ pub fn list_events(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -393,7 +420,8 @@ pub fn list_insights(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -412,7 +440,8 @@ pub fn list_monitored_resources(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -431,7 +460,8 @@ pub fn list_notification_channels(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -450,7 +480,8 @@ pub fn list_organization_insights(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -469,7 +500,8 @@ pub fn list_recommendations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -488,7 +520,8 @@ pub fn put_feedback(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -508,7 +541,8 @@ pub fn remove_notification_channel(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -527,7 +561,8 @@ pub fn search_insights(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -546,7 +581,8 @@ pub fn search_organization_insights(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -565,7 +601,8 @@ pub fn start_cost_estimation(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -584,7 +621,8 @@ pub fn update_event_sources_config(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -603,7 +641,8 @@ pub fn update_resource_collection(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -622,7 +661,8 @@ pub fn update_service_integration(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,

@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
 import gleam/option.{type Option}
@@ -15,18 +15,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn apply_archive_rule(
@@ -39,7 +48,8 @@ pub fn apply_archive_rule(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -59,7 +69,8 @@ pub fn cancel_policy_generation(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -78,7 +89,8 @@ pub fn check_access_not_granted(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -97,7 +109,8 @@ pub fn check_no_new_access(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -116,7 +129,8 @@ pub fn check_no_public_access(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -135,7 +149,8 @@ pub fn create_access_preview(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -155,7 +170,8 @@ pub fn generate_finding_recommendation(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -175,7 +191,8 @@ pub fn get_access_preview(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -194,7 +211,8 @@ pub fn get_analyzed_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -214,7 +232,8 @@ pub fn get_finding(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -234,7 +253,8 @@ pub fn get_finding_recommendation(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -254,7 +274,8 @@ pub fn get_finding_v2(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -274,7 +295,8 @@ pub fn get_generated_policy(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -294,7 +316,8 @@ pub fn list_access_preview_findings(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -313,7 +336,8 @@ pub fn list_access_previews(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -332,7 +356,8 @@ pub fn list_analyzed_resources(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -351,7 +376,8 @@ pub fn list_findings(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -370,7 +396,8 @@ pub fn list_findings_v2(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -389,7 +416,8 @@ pub fn list_policy_generations(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -409,7 +437,8 @@ pub fn list_tags_for_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -428,7 +457,8 @@ pub fn start_policy_generation(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -447,7 +477,8 @@ pub fn start_resource_scan(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -467,7 +498,8 @@ pub fn tag_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -487,7 +519,8 @@ pub fn untag_resource(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -506,7 +539,8 @@ pub fn update_findings(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -525,7 +559,8 @@ pub fn validate_policy(
   let headers = [#("content-type", "application/json"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,

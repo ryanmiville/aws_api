@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -16,28 +16,38 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn add_permission(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AddPermission"
+  let target = metadata.service_id <> ".AddPermission"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -50,10 +60,11 @@ pub fn cancel_message_move_task(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CancelMessageMoveTask"
+  let target = metadata.service_id <> ".CancelMessageMoveTask"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -66,10 +77,11 @@ pub fn change_message_visibility(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ChangeMessageVisibility"
+  let target = metadata.service_id <> ".ChangeMessageVisibility"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -82,10 +94,11 @@ pub fn change_message_visibility_batch(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ChangeMessageVisibilityBatch"
+  let target = metadata.service_id <> ".ChangeMessageVisibilityBatch"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -95,10 +108,11 @@ pub fn change_message_visibility_batch(
 }
 
 pub fn create_queue(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateQueue"
+  let target = metadata.service_id <> ".CreateQueue"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -111,10 +125,11 @@ pub fn delete_message(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteMessage"
+  let target = metadata.service_id <> ".DeleteMessage"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -127,10 +142,11 @@ pub fn delete_message_batch(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteMessageBatch"
+  let target = metadata.service_id <> ".DeleteMessageBatch"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -140,10 +156,11 @@ pub fn delete_message_batch(
 }
 
 pub fn delete_queue(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteQueue"
+  let target = metadata.service_id <> ".DeleteQueue"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -156,10 +173,11 @@ pub fn get_queue_attributes(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetQueueAttributes"
+  let target = metadata.service_id <> ".GetQueueAttributes"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -172,10 +190,11 @@ pub fn get_queue_url(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetQueueUrl"
+  let target = metadata.service_id <> ".GetQueueUrl"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -188,10 +207,11 @@ pub fn list_dead_letter_source_queues(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListDeadLetterSourceQueues"
+  let target = metadata.service_id <> ".ListDeadLetterSourceQueues"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -204,10 +224,11 @@ pub fn list_message_move_tasks(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListMessageMoveTasks"
+  let target = metadata.service_id <> ".ListMessageMoveTasks"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -217,10 +238,11 @@ pub fn list_message_move_tasks(
 }
 
 pub fn list_queues(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListQueues"
+  let target = metadata.service_id <> ".ListQueues"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -233,10 +255,11 @@ pub fn list_queue_tags(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListQueueTags"
+  let target = metadata.service_id <> ".ListQueueTags"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -246,10 +269,11 @@ pub fn list_queue_tags(
 }
 
 pub fn purge_queue(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".PurgeQueue"
+  let target = metadata.service_id <> ".PurgeQueue"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -262,10 +286,11 @@ pub fn receive_message(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ReceiveMessage"
+  let target = metadata.service_id <> ".ReceiveMessage"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -278,10 +303,11 @@ pub fn remove_permission(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RemovePermission"
+  let target = metadata.service_id <> ".RemovePermission"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -291,10 +317,11 @@ pub fn remove_permission(
 }
 
 pub fn send_message(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".SendMessage"
+  let target = metadata.service_id <> ".SendMessage"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -307,10 +334,11 @@ pub fn send_message_batch(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".SendMessageBatch"
+  let target = metadata.service_id <> ".SendMessageBatch"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -323,10 +351,11 @@ pub fn set_queue_attributes(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".SetQueueAttributes"
+  let target = metadata.service_id <> ".SetQueueAttributes"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -339,10 +368,11 @@ pub fn start_message_move_task(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartMessageMoveTask"
+  let target = metadata.service_id <> ".StartMessageMoveTask"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -352,10 +382,11 @@ pub fn start_message_move_task(
 }
 
 pub fn tag_queue(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".TagQueue"
+  let target = metadata.service_id <> ".TagQueue"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -365,10 +396,11 @@ pub fn tag_queue(client: Client, request_body: BitArray) -> Request(BitArray) {
 }
 
 pub fn untag_queue(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UntagQueue"
+  let target = metadata.service_id <> ".UntagQueue"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

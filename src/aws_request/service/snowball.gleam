@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -16,28 +16,38 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn cancel_cluster(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CancelCluster"
+  let target = metadata.service_id <> ".CancelCluster"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -47,10 +57,11 @@ pub fn cancel_cluster(
 }
 
 pub fn cancel_job(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CancelJob"
+  let target = metadata.service_id <> ".CancelJob"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -63,10 +74,11 @@ pub fn create_address(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateAddress"
+  let target = metadata.service_id <> ".CreateAddress"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -79,10 +91,11 @@ pub fn create_cluster(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateCluster"
+  let target = metadata.service_id <> ".CreateCluster"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -92,10 +105,11 @@ pub fn create_cluster(
 }
 
 pub fn create_job(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateJob"
+  let target = metadata.service_id <> ".CreateJob"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -108,10 +122,11 @@ pub fn create_long_term_pricing(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateLongTermPricing"
+  let target = metadata.service_id <> ".CreateLongTermPricing"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -124,10 +139,11 @@ pub fn create_return_shipping_label(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateReturnShippingLabel"
+  let target = metadata.service_id <> ".CreateReturnShippingLabel"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -140,10 +156,11 @@ pub fn describe_address(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAddress"
+  let target = metadata.service_id <> ".DescribeAddress"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -156,10 +173,11 @@ pub fn describe_addresses(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAddresses"
+  let target = metadata.service_id <> ".DescribeAddresses"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -172,10 +190,11 @@ pub fn describe_cluster(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeCluster"
+  let target = metadata.service_id <> ".DescribeCluster"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -185,10 +204,11 @@ pub fn describe_cluster(
 }
 
 pub fn describe_job(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeJob"
+  let target = metadata.service_id <> ".DescribeJob"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -201,10 +221,11 @@ pub fn describe_return_shipping_label(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeReturnShippingLabel"
+  let target = metadata.service_id <> ".DescribeReturnShippingLabel"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -217,10 +238,11 @@ pub fn get_job_manifest(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetJobManifest"
+  let target = metadata.service_id <> ".GetJobManifest"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -233,10 +255,11 @@ pub fn get_job_unlock_code(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetJobUnlockCode"
+  let target = metadata.service_id <> ".GetJobUnlockCode"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -249,10 +272,11 @@ pub fn get_snowball_usage(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetSnowballUsage"
+  let target = metadata.service_id <> ".GetSnowballUsage"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -265,10 +289,11 @@ pub fn get_software_updates(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetSoftwareUpdates"
+  let target = metadata.service_id <> ".GetSoftwareUpdates"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -281,10 +306,11 @@ pub fn list_cluster_jobs(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListClusterJobs"
+  let target = metadata.service_id <> ".ListClusterJobs"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -297,10 +323,11 @@ pub fn list_clusters(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListClusters"
+  let target = metadata.service_id <> ".ListClusters"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -313,10 +340,11 @@ pub fn list_compatible_images(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListCompatibleImages"
+  let target = metadata.service_id <> ".ListCompatibleImages"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -326,10 +354,11 @@ pub fn list_compatible_images(
 }
 
 pub fn list_jobs(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListJobs"
+  let target = metadata.service_id <> ".ListJobs"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -342,10 +371,11 @@ pub fn list_long_term_pricing(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListLongTermPricing"
+  let target = metadata.service_id <> ".ListLongTermPricing"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -358,10 +388,11 @@ pub fn list_pickup_locations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListPickupLocations"
+  let target = metadata.service_id <> ".ListPickupLocations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -374,10 +405,11 @@ pub fn list_service_versions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListServiceVersions"
+  let target = metadata.service_id <> ".ListServiceVersions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -390,10 +422,11 @@ pub fn update_cluster(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateCluster"
+  let target = metadata.service_id <> ".UpdateCluster"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -403,10 +436,11 @@ pub fn update_cluster(
 }
 
 pub fn update_job(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateJob"
+  let target = metadata.service_id <> ".UpdateJob"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -419,10 +453,11 @@ pub fn update_job_shipment_state(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateJobShipmentState"
+  let target = metadata.service_id <> ".UpdateJobShipmentState"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -435,10 +470,11 @@ pub fn update_long_term_pricing(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateLongTermPricing"
+  let target = metadata.service_id <> ".UpdateLongTermPricing"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

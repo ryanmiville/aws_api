@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/bit_array
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
@@ -18,18 +18,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn attach_instances(
@@ -45,7 +54,8 @@ pub fn attach_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -67,7 +77,8 @@ pub fn attach_load_balancers(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -89,7 +100,8 @@ pub fn attach_load_balancer_target_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -111,7 +123,8 @@ pub fn attach_traffic_sources(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -133,7 +146,8 @@ pub fn batch_delete_scheduled_action(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -155,7 +169,8 @@ pub fn batch_put_scheduled_update_group_action(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -177,7 +192,8 @@ pub fn cancel_instance_refresh(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -199,7 +215,8 @@ pub fn complete_lifecycle_action(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -221,7 +238,8 @@ pub fn create_auto_scaling_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -243,7 +261,8 @@ pub fn create_launch_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -265,7 +284,8 @@ pub fn create_or_update_tags(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -287,7 +307,8 @@ pub fn delete_auto_scaling_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -309,7 +330,8 @@ pub fn delete_launch_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -331,7 +353,8 @@ pub fn delete_lifecycle_hook(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -353,7 +376,8 @@ pub fn delete_notification_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -375,7 +399,8 @@ pub fn delete_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -397,7 +422,8 @@ pub fn delete_scheduled_action(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -419,7 +445,8 @@ pub fn delete_tags(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -441,7 +468,8 @@ pub fn delete_warm_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -463,7 +491,8 @@ pub fn describe_account_limits(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -485,7 +514,8 @@ pub fn describe_adjustment_types(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -507,7 +537,8 @@ pub fn describe_auto_scaling_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -529,7 +560,8 @@ pub fn describe_auto_scaling_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -551,7 +583,8 @@ pub fn describe_auto_scaling_notification_types(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -573,7 +606,8 @@ pub fn describe_instance_refreshes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -595,7 +629,8 @@ pub fn describe_launch_configurations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -617,7 +652,8 @@ pub fn describe_lifecycle_hooks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -639,7 +675,8 @@ pub fn describe_lifecycle_hook_types(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -661,7 +698,8 @@ pub fn describe_load_balancers(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -683,7 +721,8 @@ pub fn describe_load_balancer_target_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -705,7 +744,8 @@ pub fn describe_metric_collection_types(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -727,7 +767,8 @@ pub fn describe_notification_configurations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -749,7 +790,8 @@ pub fn describe_policies(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -771,7 +813,8 @@ pub fn describe_scaling_activities(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -793,7 +836,8 @@ pub fn describe_scaling_process_types(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -815,7 +859,8 @@ pub fn describe_scheduled_actions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -837,7 +882,8 @@ pub fn describe_tags(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -859,7 +905,8 @@ pub fn describe_termination_policy_types(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -881,7 +928,8 @@ pub fn describe_traffic_sources(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -903,7 +951,8 @@ pub fn describe_warm_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -925,7 +974,8 @@ pub fn detach_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -947,7 +997,8 @@ pub fn detach_load_balancers(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -969,7 +1020,8 @@ pub fn detach_load_balancer_target_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -991,7 +1043,8 @@ pub fn detach_traffic_sources(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1013,7 +1066,8 @@ pub fn disable_metrics_collection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1035,7 +1089,8 @@ pub fn enable_metrics_collection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1057,7 +1112,8 @@ pub fn enter_standby(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1079,7 +1135,8 @@ pub fn execute_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1101,7 +1158,8 @@ pub fn exit_standby(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1123,7 +1181,8 @@ pub fn get_predictive_scaling_forecast(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1145,7 +1204,8 @@ pub fn put_lifecycle_hook(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1167,7 +1227,8 @@ pub fn put_notification_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1189,7 +1250,8 @@ pub fn put_scaling_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1211,7 +1273,8 @@ pub fn put_scheduled_update_group_action(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1233,7 +1296,8 @@ pub fn put_warm_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1255,7 +1319,8 @@ pub fn record_lifecycle_action_heartbeat(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1277,7 +1342,8 @@ pub fn resume_processes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1299,7 +1365,8 @@ pub fn rollback_instance_refresh(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1321,7 +1388,8 @@ pub fn set_desired_capacity(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1343,7 +1411,8 @@ pub fn set_instance_health(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1365,7 +1434,8 @@ pub fn set_instance_protection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1387,7 +1457,8 @@ pub fn start_instance_refresh(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1409,7 +1480,8 @@ pub fn suspend_processes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1431,7 +1503,8 @@ pub fn terminate_instance_in_auto_scaling_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1453,7 +1526,8 @@ pub fn update_auto_scaling_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

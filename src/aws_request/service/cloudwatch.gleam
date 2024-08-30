@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/bit_array
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
@@ -18,18 +18,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn delete_alarms(
@@ -45,7 +54,8 @@ pub fn delete_alarms(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -67,7 +77,8 @@ pub fn delete_anomaly_detector(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -89,7 +100,8 @@ pub fn delete_dashboards(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -111,7 +123,8 @@ pub fn delete_insight_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -133,7 +146,8 @@ pub fn delete_metric_stream(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -155,7 +169,8 @@ pub fn describe_alarm_history(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -177,7 +192,8 @@ pub fn describe_alarms(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -199,7 +215,8 @@ pub fn describe_alarms_for_metric(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -221,7 +238,8 @@ pub fn describe_anomaly_detectors(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -243,7 +261,8 @@ pub fn describe_insight_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -265,7 +284,8 @@ pub fn disable_alarm_actions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -287,7 +307,8 @@ pub fn disable_insight_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -309,7 +330,8 @@ pub fn enable_alarm_actions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -331,7 +353,8 @@ pub fn enable_insight_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -353,7 +376,8 @@ pub fn get_dashboard(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -375,7 +399,8 @@ pub fn get_insight_rule_report(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -397,7 +422,8 @@ pub fn get_metric_data(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -419,7 +445,8 @@ pub fn get_metric_statistics(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -441,7 +468,8 @@ pub fn get_metric_stream(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -463,7 +491,8 @@ pub fn get_metric_widget_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -485,7 +514,8 @@ pub fn list_dashboards(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -507,7 +537,8 @@ pub fn list_managed_insight_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -529,7 +560,8 @@ pub fn list_metrics(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -551,7 +583,8 @@ pub fn list_metric_streams(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -573,7 +606,8 @@ pub fn list_tags_for_resource(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -595,7 +629,8 @@ pub fn put_anomaly_detector(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -617,7 +652,8 @@ pub fn put_composite_alarm(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -639,7 +675,8 @@ pub fn put_dashboard(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -661,7 +698,8 @@ pub fn put_insight_rule(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -683,7 +721,8 @@ pub fn put_managed_insight_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -705,7 +744,8 @@ pub fn put_metric_alarm(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -727,7 +767,8 @@ pub fn put_metric_data(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -749,7 +790,8 @@ pub fn put_metric_stream(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -771,7 +813,8 @@ pub fn set_alarm_state(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -793,7 +836,8 @@ pub fn start_metric_streams(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -815,7 +859,8 @@ pub fn stop_metric_streams(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -837,7 +882,8 @@ pub fn tag_resource(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -859,7 +905,8 @@ pub fn untag_resource(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

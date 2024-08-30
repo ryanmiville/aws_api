@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -16,25 +16,35 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn add_tags(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AddTags"
+  let target = metadata.service_id <> ".AddTags"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -47,10 +57,11 @@ pub fn create_batch_prediction(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateBatchPrediction"
+  let target = metadata.service_id <> ".CreateBatchPrediction"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -63,10 +74,11 @@ pub fn create_data_source_from_rds(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateDataSourceFromRDS"
+  let target = metadata.service_id <> ".CreateDataSourceFromRDS"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -79,10 +91,11 @@ pub fn create_data_source_from_redshift(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateDataSourceFromRedshift"
+  let target = metadata.service_id <> ".CreateDataSourceFromRedshift"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -95,10 +108,11 @@ pub fn create_data_source_from_s3(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateDataSourceFromS3"
+  let target = metadata.service_id <> ".CreateDataSourceFromS3"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -111,10 +125,11 @@ pub fn create_evaluation(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateEvaluation"
+  let target = metadata.service_id <> ".CreateEvaluation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -127,10 +142,11 @@ pub fn create_ml_model(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateMLModel"
+  let target = metadata.service_id <> ".CreateMLModel"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -143,10 +159,11 @@ pub fn create_realtime_endpoint(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateRealtimeEndpoint"
+  let target = metadata.service_id <> ".CreateRealtimeEndpoint"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -159,10 +176,11 @@ pub fn delete_batch_prediction(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteBatchPrediction"
+  let target = metadata.service_id <> ".DeleteBatchPrediction"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -175,10 +193,11 @@ pub fn delete_data_source(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteDataSource"
+  let target = metadata.service_id <> ".DeleteDataSource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -191,10 +210,11 @@ pub fn delete_evaluation(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteEvaluation"
+  let target = metadata.service_id <> ".DeleteEvaluation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -207,10 +227,11 @@ pub fn delete_ml_model(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteMLModel"
+  let target = metadata.service_id <> ".DeleteMLModel"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -223,10 +244,11 @@ pub fn delete_realtime_endpoint(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteRealtimeEndpoint"
+  let target = metadata.service_id <> ".DeleteRealtimeEndpoint"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -236,10 +258,11 @@ pub fn delete_realtime_endpoint(
 }
 
 pub fn delete_tags(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteTags"
+  let target = metadata.service_id <> ".DeleteTags"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -252,10 +275,11 @@ pub fn describe_batch_predictions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeBatchPredictions"
+  let target = metadata.service_id <> ".DescribeBatchPredictions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -268,10 +292,11 @@ pub fn describe_data_sources(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeDataSources"
+  let target = metadata.service_id <> ".DescribeDataSources"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -284,10 +309,11 @@ pub fn describe_evaluations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeEvaluations"
+  let target = metadata.service_id <> ".DescribeEvaluations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -300,10 +326,11 @@ pub fn describe_ml_models(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeMLModels"
+  let target = metadata.service_id <> ".DescribeMLModels"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -316,10 +343,11 @@ pub fn describe_tags(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeTags"
+  let target = metadata.service_id <> ".DescribeTags"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -332,10 +360,11 @@ pub fn get_batch_prediction(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetBatchPrediction"
+  let target = metadata.service_id <> ".GetBatchPrediction"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -348,10 +377,11 @@ pub fn get_data_source(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetDataSource"
+  let target = metadata.service_id <> ".GetDataSource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -364,10 +394,11 @@ pub fn get_evaluation(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetEvaluation"
+  let target = metadata.service_id <> ".GetEvaluation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -377,10 +408,11 @@ pub fn get_evaluation(
 }
 
 pub fn get_ml_model(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetMLModel"
+  let target = metadata.service_id <> ".GetMLModel"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -390,10 +422,11 @@ pub fn get_ml_model(client: Client, request_body: BitArray) -> Request(BitArray)
 }
 
 pub fn predict(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".Predict"
+  let target = metadata.service_id <> ".Predict"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -406,10 +439,11 @@ pub fn update_batch_prediction(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateBatchPrediction"
+  let target = metadata.service_id <> ".UpdateBatchPrediction"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -422,10 +456,11 @@ pub fn update_data_source(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateDataSource"
+  let target = metadata.service_id <> ".UpdateDataSource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -438,10 +473,11 @@ pub fn update_evaluation(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateEvaluation"
+  let target = metadata.service_id <> ".UpdateEvaluation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -454,10 +490,11 @@ pub fn update_ml_model(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateMLModel"
+  let target = metadata.service_id <> ".UpdateMLModel"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

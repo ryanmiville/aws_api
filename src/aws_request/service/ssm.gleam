@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -16,28 +16,38 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn add_tags_to_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AddTagsToResource"
+  let target = metadata.service_id <> ".AddTagsToResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -50,10 +60,11 @@ pub fn associate_ops_item_related_item(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AssociateOpsItemRelatedItem"
+  let target = metadata.service_id <> ".AssociateOpsItemRelatedItem"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -66,10 +77,11 @@ pub fn cancel_command(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CancelCommand"
+  let target = metadata.service_id <> ".CancelCommand"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -82,10 +94,11 @@ pub fn cancel_maintenance_window_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CancelMaintenanceWindowExecution"
+  let target = metadata.service_id <> ".CancelMaintenanceWindowExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -98,10 +111,11 @@ pub fn create_activation(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateActivation"
+  let target = metadata.service_id <> ".CreateActivation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -114,10 +128,11 @@ pub fn create_association(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateAssociation"
+  let target = metadata.service_id <> ".CreateAssociation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -130,10 +145,11 @@ pub fn create_association_batch(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateAssociationBatch"
+  let target = metadata.service_id <> ".CreateAssociationBatch"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -146,10 +162,11 @@ pub fn create_document(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateDocument"
+  let target = metadata.service_id <> ".CreateDocument"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -162,10 +179,11 @@ pub fn create_maintenance_window(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateMaintenanceWindow"
+  let target = metadata.service_id <> ".CreateMaintenanceWindow"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -178,10 +196,11 @@ pub fn create_ops_item(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateOpsItem"
+  let target = metadata.service_id <> ".CreateOpsItem"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -194,10 +213,11 @@ pub fn create_ops_metadata(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateOpsMetadata"
+  let target = metadata.service_id <> ".CreateOpsMetadata"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -210,10 +230,11 @@ pub fn create_patch_baseline(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreatePatchBaseline"
+  let target = metadata.service_id <> ".CreatePatchBaseline"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -226,10 +247,11 @@ pub fn create_resource_data_sync(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateResourceDataSync"
+  let target = metadata.service_id <> ".CreateResourceDataSync"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -242,10 +264,11 @@ pub fn delete_activation(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteActivation"
+  let target = metadata.service_id <> ".DeleteActivation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -258,10 +281,11 @@ pub fn delete_association(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteAssociation"
+  let target = metadata.service_id <> ".DeleteAssociation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -274,10 +298,11 @@ pub fn delete_document(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteDocument"
+  let target = metadata.service_id <> ".DeleteDocument"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -290,10 +315,11 @@ pub fn delete_inventory(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteInventory"
+  let target = metadata.service_id <> ".DeleteInventory"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -306,10 +332,11 @@ pub fn delete_maintenance_window(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteMaintenanceWindow"
+  let target = metadata.service_id <> ".DeleteMaintenanceWindow"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -322,10 +349,11 @@ pub fn delete_ops_item(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteOpsItem"
+  let target = metadata.service_id <> ".DeleteOpsItem"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -338,10 +366,11 @@ pub fn delete_ops_metadata(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteOpsMetadata"
+  let target = metadata.service_id <> ".DeleteOpsMetadata"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -354,10 +383,11 @@ pub fn delete_parameter(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteParameter"
+  let target = metadata.service_id <> ".DeleteParameter"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -370,10 +400,11 @@ pub fn delete_parameters(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteParameters"
+  let target = metadata.service_id <> ".DeleteParameters"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -386,10 +417,11 @@ pub fn delete_patch_baseline(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeletePatchBaseline"
+  let target = metadata.service_id <> ".DeletePatchBaseline"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -402,10 +434,11 @@ pub fn delete_resource_data_sync(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteResourceDataSync"
+  let target = metadata.service_id <> ".DeleteResourceDataSync"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -418,10 +451,11 @@ pub fn delete_resource_policy(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteResourcePolicy"
+  let target = metadata.service_id <> ".DeleteResourcePolicy"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -434,10 +468,11 @@ pub fn deregister_managed_instance(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeregisterManagedInstance"
+  let target = metadata.service_id <> ".DeregisterManagedInstance"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -450,11 +485,11 @@ pub fn deregister_patch_baseline_for_patch_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DeregisterPatchBaselineForPatchGroup"
+  let target = metadata.service_id <> ".DeregisterPatchBaselineForPatchGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -467,11 +502,11 @@ pub fn deregister_target_from_maintenance_window(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DeregisterTargetFromMaintenanceWindow"
+  let target = metadata.service_id <> ".DeregisterTargetFromMaintenanceWindow"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -484,11 +519,11 @@ pub fn deregister_task_from_maintenance_window(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DeregisterTaskFromMaintenanceWindow"
+  let target = metadata.service_id <> ".DeregisterTaskFromMaintenanceWindow"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -501,10 +536,11 @@ pub fn describe_activations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeActivations"
+  let target = metadata.service_id <> ".DescribeActivations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -517,10 +553,11 @@ pub fn describe_association(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAssociation"
+  let target = metadata.service_id <> ".DescribeAssociation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -533,10 +570,11 @@ pub fn describe_association_executions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAssociationExecutions"
+  let target = metadata.service_id <> ".DescribeAssociationExecutions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -549,11 +587,11 @@ pub fn describe_association_execution_targets(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeAssociationExecutionTargets"
+  let target = metadata.service_id <> ".DescribeAssociationExecutionTargets"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -566,10 +604,11 @@ pub fn describe_automation_executions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAutomationExecutions"
+  let target = metadata.service_id <> ".DescribeAutomationExecutions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -582,10 +621,11 @@ pub fn describe_automation_step_executions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAutomationStepExecutions"
+  let target = metadata.service_id <> ".DescribeAutomationStepExecutions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -598,10 +638,11 @@ pub fn describe_available_patches(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAvailablePatches"
+  let target = metadata.service_id <> ".DescribeAvailablePatches"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -614,10 +655,11 @@ pub fn describe_document(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeDocument"
+  let target = metadata.service_id <> ".DescribeDocument"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -630,10 +672,11 @@ pub fn describe_document_permission(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeDocumentPermission"
+  let target = metadata.service_id <> ".DescribeDocumentPermission"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -646,11 +689,11 @@ pub fn describe_effective_instance_associations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeEffectiveInstanceAssociations"
+  let target = metadata.service_id <> ".DescribeEffectiveInstanceAssociations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -664,10 +707,11 @@ pub fn describe_effective_patches_for_patch_baseline(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id <> ".DescribeEffectivePatchesForPatchBaseline"
+    metadata.service_id <> ".DescribeEffectivePatchesForPatchBaseline"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -680,11 +724,11 @@ pub fn describe_instance_associations_status(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeInstanceAssociationsStatus"
+  let target = metadata.service_id <> ".DescribeInstanceAssociationsStatus"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -697,10 +741,11 @@ pub fn describe_instance_information(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeInstanceInformation"
+  let target = metadata.service_id <> ".DescribeInstanceInformation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -713,10 +758,11 @@ pub fn describe_instance_patches(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeInstancePatches"
+  let target = metadata.service_id <> ".DescribeInstancePatches"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -729,10 +775,11 @@ pub fn describe_instance_patch_states(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeInstancePatchStates"
+  let target = metadata.service_id <> ".DescribeInstancePatchStates"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -746,10 +793,11 @@ pub fn describe_instance_patch_states_for_patch_group(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id <> ".DescribeInstancePatchStatesForPatchGroup"
+    metadata.service_id <> ".DescribeInstancePatchStatesForPatchGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -762,10 +810,11 @@ pub fn describe_instance_properties(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeInstanceProperties"
+  let target = metadata.service_id <> ".DescribeInstanceProperties"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -778,10 +827,11 @@ pub fn describe_inventory_deletions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeInventoryDeletions"
+  let target = metadata.service_id <> ".DescribeInventoryDeletions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -794,11 +844,11 @@ pub fn describe_maintenance_window_executions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeMaintenanceWindowExecutions"
+  let target = metadata.service_id <> ".DescribeMaintenanceWindowExecutions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -812,11 +862,11 @@ pub fn describe_maintenance_window_execution_task_invocations(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id
-    <> ".DescribeMaintenanceWindowExecutionTaskInvocations"
+    metadata.service_id <> ".DescribeMaintenanceWindowExecutionTaskInvocations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -829,11 +879,11 @@ pub fn describe_maintenance_window_execution_tasks(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeMaintenanceWindowExecutionTasks"
+  let target = metadata.service_id <> ".DescribeMaintenanceWindowExecutionTasks"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -846,10 +896,11 @@ pub fn describe_maintenance_windows(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeMaintenanceWindows"
+  let target = metadata.service_id <> ".DescribeMaintenanceWindows"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -862,10 +913,11 @@ pub fn describe_maintenance_window_schedule(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeMaintenanceWindowSchedule"
+  let target = metadata.service_id <> ".DescribeMaintenanceWindowSchedule"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -878,11 +930,11 @@ pub fn describe_maintenance_windows_for_target(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeMaintenanceWindowsForTarget"
+  let target = metadata.service_id <> ".DescribeMaintenanceWindowsForTarget"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -895,10 +947,11 @@ pub fn describe_maintenance_window_targets(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeMaintenanceWindowTargets"
+  let target = metadata.service_id <> ".DescribeMaintenanceWindowTargets"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -911,10 +964,11 @@ pub fn describe_maintenance_window_tasks(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeMaintenanceWindowTasks"
+  let target = metadata.service_id <> ".DescribeMaintenanceWindowTasks"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -927,10 +981,11 @@ pub fn describe_ops_items(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeOpsItems"
+  let target = metadata.service_id <> ".DescribeOpsItems"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -943,10 +998,11 @@ pub fn describe_parameters(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeParameters"
+  let target = metadata.service_id <> ".DescribeParameters"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -959,10 +1015,11 @@ pub fn describe_patch_baselines(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribePatchBaselines"
+  let target = metadata.service_id <> ".DescribePatchBaselines"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -975,10 +1032,11 @@ pub fn describe_patch_groups(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribePatchGroups"
+  let target = metadata.service_id <> ".DescribePatchGroups"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -991,10 +1049,11 @@ pub fn describe_patch_group_state(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribePatchGroupState"
+  let target = metadata.service_id <> ".DescribePatchGroupState"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1007,10 +1066,11 @@ pub fn describe_patch_properties(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribePatchProperties"
+  let target = metadata.service_id <> ".DescribePatchProperties"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1023,10 +1083,11 @@ pub fn describe_sessions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeSessions"
+  let target = metadata.service_id <> ".DescribeSessions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1039,10 +1100,11 @@ pub fn disassociate_ops_item_related_item(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DisassociateOpsItemRelatedItem"
+  let target = metadata.service_id <> ".DisassociateOpsItemRelatedItem"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1055,10 +1117,11 @@ pub fn get_automation_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetAutomationExecution"
+  let target = metadata.service_id <> ".GetAutomationExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1071,10 +1134,11 @@ pub fn get_calendar_state(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetCalendarState"
+  let target = metadata.service_id <> ".GetCalendarState"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1087,10 +1151,11 @@ pub fn get_command_invocation(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetCommandInvocation"
+  let target = metadata.service_id <> ".GetCommandInvocation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1103,10 +1168,11 @@ pub fn get_connection_status(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetConnectionStatus"
+  let target = metadata.service_id <> ".GetConnectionStatus"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1119,10 +1185,11 @@ pub fn get_default_patch_baseline(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetDefaultPatchBaseline"
+  let target = metadata.service_id <> ".GetDefaultPatchBaseline"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1135,11 +1202,11 @@ pub fn get_deployable_patch_snapshot_for_instance(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".GetDeployablePatchSnapshotForInstance"
+  let target = metadata.service_id <> ".GetDeployablePatchSnapshotForInstance"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1149,10 +1216,11 @@ pub fn get_deployable_patch_snapshot_for_instance(
 }
 
 pub fn get_document(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetDocument"
+  let target = metadata.service_id <> ".GetDocument"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1165,10 +1233,11 @@ pub fn get_inventory(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetInventory"
+  let target = metadata.service_id <> ".GetInventory"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1181,10 +1250,11 @@ pub fn get_inventory_schema(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetInventorySchema"
+  let target = metadata.service_id <> ".GetInventorySchema"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1197,10 +1267,11 @@ pub fn get_maintenance_window(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetMaintenanceWindow"
+  let target = metadata.service_id <> ".GetMaintenanceWindow"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1213,10 +1284,11 @@ pub fn get_maintenance_window_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetMaintenanceWindowExecution"
+  let target = metadata.service_id <> ".GetMaintenanceWindowExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1229,10 +1301,11 @@ pub fn get_maintenance_window_execution_task(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetMaintenanceWindowExecutionTask"
+  let target = metadata.service_id <> ".GetMaintenanceWindowExecutionTask"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1246,10 +1319,11 @@ pub fn get_maintenance_window_execution_task_invocation(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id <> ".GetMaintenanceWindowExecutionTaskInvocation"
+    metadata.service_id <> ".GetMaintenanceWindowExecutionTaskInvocation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1262,10 +1336,11 @@ pub fn get_maintenance_window_task(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetMaintenanceWindowTask"
+  let target = metadata.service_id <> ".GetMaintenanceWindowTask"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1275,10 +1350,11 @@ pub fn get_maintenance_window_task(
 }
 
 pub fn get_ops_item(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetOpsItem"
+  let target = metadata.service_id <> ".GetOpsItem"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1291,10 +1367,11 @@ pub fn get_ops_metadata(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetOpsMetadata"
+  let target = metadata.service_id <> ".GetOpsMetadata"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1307,10 +1384,11 @@ pub fn get_ops_summary(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetOpsSummary"
+  let target = metadata.service_id <> ".GetOpsSummary"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1323,10 +1401,11 @@ pub fn get_parameter(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetParameter"
+  let target = metadata.service_id <> ".GetParameter"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1339,10 +1418,11 @@ pub fn get_parameter_history(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetParameterHistory"
+  let target = metadata.service_id <> ".GetParameterHistory"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1355,10 +1435,11 @@ pub fn get_parameters(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetParameters"
+  let target = metadata.service_id <> ".GetParameters"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1371,10 +1452,11 @@ pub fn get_parameters_by_path(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetParametersByPath"
+  let target = metadata.service_id <> ".GetParametersByPath"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1387,10 +1469,11 @@ pub fn get_patch_baseline(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetPatchBaseline"
+  let target = metadata.service_id <> ".GetPatchBaseline"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1403,10 +1486,11 @@ pub fn get_patch_baseline_for_patch_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetPatchBaselineForPatchGroup"
+  let target = metadata.service_id <> ".GetPatchBaselineForPatchGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1419,10 +1503,11 @@ pub fn get_resource_policies(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetResourcePolicies"
+  let target = metadata.service_id <> ".GetResourcePolicies"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1435,10 +1520,11 @@ pub fn get_service_setting(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetServiceSetting"
+  let target = metadata.service_id <> ".GetServiceSetting"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1451,10 +1537,11 @@ pub fn label_parameter_version(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".LabelParameterVersion"
+  let target = metadata.service_id <> ".LabelParameterVersion"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1467,10 +1554,11 @@ pub fn list_associations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListAssociations"
+  let target = metadata.service_id <> ".ListAssociations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1483,10 +1571,11 @@ pub fn list_association_versions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListAssociationVersions"
+  let target = metadata.service_id <> ".ListAssociationVersions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1499,10 +1588,11 @@ pub fn list_command_invocations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListCommandInvocations"
+  let target = metadata.service_id <> ".ListCommandInvocations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1515,10 +1605,11 @@ pub fn list_commands(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListCommands"
+  let target = metadata.service_id <> ".ListCommands"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1531,10 +1622,11 @@ pub fn list_compliance_items(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListComplianceItems"
+  let target = metadata.service_id <> ".ListComplianceItems"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1547,10 +1639,11 @@ pub fn list_compliance_summaries(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListComplianceSummaries"
+  let target = metadata.service_id <> ".ListComplianceSummaries"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1563,10 +1656,11 @@ pub fn list_document_metadata_history(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListDocumentMetadataHistory"
+  let target = metadata.service_id <> ".ListDocumentMetadataHistory"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1579,10 +1673,11 @@ pub fn list_documents(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListDocuments"
+  let target = metadata.service_id <> ".ListDocuments"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1595,10 +1690,11 @@ pub fn list_document_versions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListDocumentVersions"
+  let target = metadata.service_id <> ".ListDocumentVersions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1611,10 +1707,11 @@ pub fn list_inventory_entries(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListInventoryEntries"
+  let target = metadata.service_id <> ".ListInventoryEntries"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1627,10 +1724,11 @@ pub fn list_ops_item_events(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListOpsItemEvents"
+  let target = metadata.service_id <> ".ListOpsItemEvents"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1643,10 +1741,11 @@ pub fn list_ops_item_related_items(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListOpsItemRelatedItems"
+  let target = metadata.service_id <> ".ListOpsItemRelatedItems"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1659,10 +1758,11 @@ pub fn list_ops_metadata(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListOpsMetadata"
+  let target = metadata.service_id <> ".ListOpsMetadata"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1675,10 +1775,11 @@ pub fn list_resource_compliance_summaries(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListResourceComplianceSummaries"
+  let target = metadata.service_id <> ".ListResourceComplianceSummaries"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1691,10 +1792,11 @@ pub fn list_resource_data_sync(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListResourceDataSync"
+  let target = metadata.service_id <> ".ListResourceDataSync"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1707,10 +1809,11 @@ pub fn list_tags_for_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListTagsForResource"
+  let target = metadata.service_id <> ".ListTagsForResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1723,10 +1826,11 @@ pub fn modify_document_permission(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ModifyDocumentPermission"
+  let target = metadata.service_id <> ".ModifyDocumentPermission"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1739,10 +1843,11 @@ pub fn put_compliance_items(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".PutComplianceItems"
+  let target = metadata.service_id <> ".PutComplianceItems"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1755,10 +1860,11 @@ pub fn put_inventory(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".PutInventory"
+  let target = metadata.service_id <> ".PutInventory"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1771,10 +1877,11 @@ pub fn put_parameter(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".PutParameter"
+  let target = metadata.service_id <> ".PutParameter"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1787,10 +1894,11 @@ pub fn put_resource_policy(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".PutResourcePolicy"
+  let target = metadata.service_id <> ".PutResourcePolicy"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1803,10 +1911,11 @@ pub fn register_default_patch_baseline(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RegisterDefaultPatchBaseline"
+  let target = metadata.service_id <> ".RegisterDefaultPatchBaseline"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1819,11 +1928,11 @@ pub fn register_patch_baseline_for_patch_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".RegisterPatchBaselineForPatchGroup"
+  let target = metadata.service_id <> ".RegisterPatchBaselineForPatchGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1836,11 +1945,11 @@ pub fn register_target_with_maintenance_window(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".RegisterTargetWithMaintenanceWindow"
+  let target = metadata.service_id <> ".RegisterTargetWithMaintenanceWindow"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1853,10 +1962,11 @@ pub fn register_task_with_maintenance_window(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RegisterTaskWithMaintenanceWindow"
+  let target = metadata.service_id <> ".RegisterTaskWithMaintenanceWindow"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1869,10 +1979,11 @@ pub fn remove_tags_from_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RemoveTagsFromResource"
+  let target = metadata.service_id <> ".RemoveTagsFromResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1885,10 +1996,11 @@ pub fn reset_service_setting(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ResetServiceSetting"
+  let target = metadata.service_id <> ".ResetServiceSetting"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1901,10 +2013,11 @@ pub fn resume_session(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ResumeSession"
+  let target = metadata.service_id <> ".ResumeSession"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1917,10 +2030,11 @@ pub fn send_automation_signal(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".SendAutomationSignal"
+  let target = metadata.service_id <> ".SendAutomationSignal"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1930,10 +2044,11 @@ pub fn send_automation_signal(
 }
 
 pub fn send_command(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".SendCommand"
+  let target = metadata.service_id <> ".SendCommand"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1946,10 +2061,11 @@ pub fn start_associations_once(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartAssociationsOnce"
+  let target = metadata.service_id <> ".StartAssociationsOnce"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1962,10 +2078,11 @@ pub fn start_automation_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartAutomationExecution"
+  let target = metadata.service_id <> ".StartAutomationExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1978,10 +2095,11 @@ pub fn start_change_request_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartChangeRequestExecution"
+  let target = metadata.service_id <> ".StartChangeRequestExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1994,10 +2112,11 @@ pub fn start_session(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartSession"
+  let target = metadata.service_id <> ".StartSession"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2010,10 +2129,11 @@ pub fn stop_automation_execution(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StopAutomationExecution"
+  let target = metadata.service_id <> ".StopAutomationExecution"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2026,10 +2146,11 @@ pub fn terminate_session(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".TerminateSession"
+  let target = metadata.service_id <> ".TerminateSession"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2042,10 +2163,11 @@ pub fn unlabel_parameter_version(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UnlabelParameterVersion"
+  let target = metadata.service_id <> ".UnlabelParameterVersion"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2058,10 +2180,11 @@ pub fn update_association(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateAssociation"
+  let target = metadata.service_id <> ".UpdateAssociation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2074,10 +2197,11 @@ pub fn update_association_status(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateAssociationStatus"
+  let target = metadata.service_id <> ".UpdateAssociationStatus"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2090,10 +2214,11 @@ pub fn update_document(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateDocument"
+  let target = metadata.service_id <> ".UpdateDocument"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2106,10 +2231,11 @@ pub fn update_document_default_version(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateDocumentDefaultVersion"
+  let target = metadata.service_id <> ".UpdateDocumentDefaultVersion"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2122,10 +2248,11 @@ pub fn update_document_metadata(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateDocumentMetadata"
+  let target = metadata.service_id <> ".UpdateDocumentMetadata"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2138,10 +2265,11 @@ pub fn update_maintenance_window(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateMaintenanceWindow"
+  let target = metadata.service_id <> ".UpdateMaintenanceWindow"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2154,10 +2282,11 @@ pub fn update_maintenance_window_target(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateMaintenanceWindowTarget"
+  let target = metadata.service_id <> ".UpdateMaintenanceWindowTarget"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2170,10 +2299,11 @@ pub fn update_maintenance_window_task(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateMaintenanceWindowTask"
+  let target = metadata.service_id <> ".UpdateMaintenanceWindowTask"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2186,10 +2316,11 @@ pub fn update_managed_instance_role(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateManagedInstanceRole"
+  let target = metadata.service_id <> ".UpdateManagedInstanceRole"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2202,10 +2333,11 @@ pub fn update_ops_item(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateOpsItem"
+  let target = metadata.service_id <> ".UpdateOpsItem"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2218,10 +2350,11 @@ pub fn update_ops_metadata(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateOpsMetadata"
+  let target = metadata.service_id <> ".UpdateOpsMetadata"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2234,10 +2367,11 @@ pub fn update_patch_baseline(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdatePatchBaseline"
+  let target = metadata.service_id <> ".UpdatePatchBaseline"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2250,10 +2384,11 @@ pub fn update_resource_data_sync(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateResourceDataSync"
+  let target = metadata.service_id <> ".UpdateResourceDataSync"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2266,10 +2401,11 @@ pub fn update_service_setting(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateServiceSetting"
+  let target = metadata.service_id <> ".UpdateServiceSetting"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

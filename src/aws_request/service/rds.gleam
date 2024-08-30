@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/bit_array
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
@@ -18,18 +18,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn add_role_to_db_cluster(
@@ -45,7 +54,8 @@ pub fn add_role_to_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -67,7 +77,8 @@ pub fn add_role_to_db_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -89,7 +100,8 @@ pub fn add_source_identifier_to_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -111,7 +123,8 @@ pub fn add_tags_to_resource(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -133,7 +146,8 @@ pub fn apply_pending_maintenance_action(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -155,7 +169,8 @@ pub fn authorize_db_security_group_ingress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -177,7 +192,8 @@ pub fn backtrack_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -199,7 +215,8 @@ pub fn cancel_export_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -221,7 +238,8 @@ pub fn copy_db_cluster_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -243,7 +261,8 @@ pub fn copy_db_cluster_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -265,7 +284,8 @@ pub fn copy_db_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -287,7 +307,8 @@ pub fn copy_db_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -309,7 +330,8 @@ pub fn copy_option_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -331,7 +353,8 @@ pub fn create_blue_green_deployment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -353,7 +376,8 @@ pub fn create_custom_db_engine_version(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -375,7 +399,8 @@ pub fn create_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -397,7 +422,8 @@ pub fn create_db_cluster_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -419,7 +445,8 @@ pub fn create_db_cluster_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -441,7 +468,8 @@ pub fn create_db_cluster_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -463,7 +491,8 @@ pub fn create_db_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -485,7 +514,8 @@ pub fn create_db_instance_read_replica(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -507,7 +537,8 @@ pub fn create_db_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -529,7 +560,8 @@ pub fn create_db_proxy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -551,7 +583,8 @@ pub fn create_db_proxy_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -573,7 +606,8 @@ pub fn create_db_security_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -595,7 +629,8 @@ pub fn create_db_shard_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -617,7 +652,8 @@ pub fn create_db_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -639,7 +675,8 @@ pub fn create_db_subnet_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -661,7 +698,8 @@ pub fn create_event_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -683,7 +721,8 @@ pub fn create_global_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -705,7 +744,8 @@ pub fn create_integration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -727,7 +767,8 @@ pub fn create_option_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -749,7 +790,8 @@ pub fn create_tenant_database(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -771,7 +813,8 @@ pub fn delete_blue_green_deployment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -793,7 +836,8 @@ pub fn delete_custom_db_engine_version(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -815,7 +859,8 @@ pub fn delete_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -837,7 +882,8 @@ pub fn delete_db_cluster_automated_backup(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -859,7 +905,8 @@ pub fn delete_db_cluster_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -881,7 +928,8 @@ pub fn delete_db_cluster_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -903,7 +951,8 @@ pub fn delete_db_cluster_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -925,7 +974,8 @@ pub fn delete_db_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -947,7 +997,8 @@ pub fn delete_db_instance_automated_backup(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -969,7 +1020,8 @@ pub fn delete_db_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -991,7 +1043,8 @@ pub fn delete_db_proxy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1013,7 +1066,8 @@ pub fn delete_db_proxy_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1035,7 +1089,8 @@ pub fn delete_db_security_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1057,7 +1112,8 @@ pub fn delete_db_shard_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1079,7 +1135,8 @@ pub fn delete_db_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1101,7 +1158,8 @@ pub fn delete_db_subnet_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1123,7 +1181,8 @@ pub fn delete_event_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1145,7 +1204,8 @@ pub fn delete_global_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1167,7 +1227,8 @@ pub fn delete_integration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1189,7 +1250,8 @@ pub fn delete_option_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1211,7 +1273,8 @@ pub fn delete_tenant_database(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1233,7 +1296,8 @@ pub fn deregister_db_proxy_targets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1255,7 +1319,8 @@ pub fn describe_account_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1277,7 +1342,8 @@ pub fn describe_blue_green_deployments(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1299,7 +1365,8 @@ pub fn describe_certificates(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1321,7 +1388,8 @@ pub fn describe_db_cluster_automated_backups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1343,7 +1411,8 @@ pub fn describe_db_cluster_backtracks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1365,7 +1434,8 @@ pub fn describe_db_cluster_endpoints(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1387,7 +1457,8 @@ pub fn describe_db_cluster_parameter_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1409,7 +1480,8 @@ pub fn describe_db_cluster_parameters(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1431,7 +1503,8 @@ pub fn describe_db_clusters(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1453,7 +1526,8 @@ pub fn describe_db_cluster_snapshot_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1475,7 +1549,8 @@ pub fn describe_db_cluster_snapshots(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1497,7 +1572,8 @@ pub fn describe_db_engine_versions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1519,7 +1595,8 @@ pub fn describe_db_instance_automated_backups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1541,7 +1618,8 @@ pub fn describe_db_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1563,7 +1641,8 @@ pub fn describe_db_log_files(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1585,7 +1664,8 @@ pub fn describe_db_parameter_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1607,7 +1687,8 @@ pub fn describe_db_parameters(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1629,7 +1710,8 @@ pub fn describe_db_proxies(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1651,7 +1733,8 @@ pub fn describe_db_proxy_endpoints(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1673,7 +1756,8 @@ pub fn describe_db_proxy_target_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1695,7 +1779,8 @@ pub fn describe_db_proxy_targets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1717,7 +1802,8 @@ pub fn describe_db_recommendations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1739,7 +1825,8 @@ pub fn describe_db_security_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1761,7 +1848,8 @@ pub fn describe_db_shard_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1783,7 +1871,8 @@ pub fn describe_db_snapshot_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1805,7 +1894,8 @@ pub fn describe_db_snapshots(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1827,7 +1917,8 @@ pub fn describe_db_snapshot_tenant_databases(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1849,7 +1940,8 @@ pub fn describe_db_subnet_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1871,7 +1963,8 @@ pub fn describe_engine_default_cluster_parameters(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1893,7 +1986,8 @@ pub fn describe_engine_default_parameters(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1915,7 +2009,8 @@ pub fn describe_event_categories(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1937,7 +2032,8 @@ pub fn describe_events(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1959,7 +2055,8 @@ pub fn describe_event_subscriptions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1981,7 +2078,8 @@ pub fn describe_export_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2003,7 +2101,8 @@ pub fn describe_global_clusters(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2025,7 +2124,8 @@ pub fn describe_integrations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2047,7 +2147,8 @@ pub fn describe_option_group_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2069,7 +2170,8 @@ pub fn describe_option_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2091,7 +2193,8 @@ pub fn describe_orderable_db_instance_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2113,7 +2216,8 @@ pub fn describe_pending_maintenance_actions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2135,7 +2239,8 @@ pub fn describe_reserved_db_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2157,7 +2262,8 @@ pub fn describe_reserved_db_instances_offerings(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2179,7 +2285,8 @@ pub fn describe_source_regions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2201,7 +2308,8 @@ pub fn describe_tenant_databases(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2223,7 +2331,8 @@ pub fn describe_valid_db_instance_modifications(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2245,7 +2354,8 @@ pub fn disable_http_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2267,7 +2377,8 @@ pub fn download_db_log_file_portion(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2289,7 +2400,8 @@ pub fn enable_http_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2311,7 +2423,8 @@ pub fn failover_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2333,7 +2446,8 @@ pub fn failover_global_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2355,7 +2469,8 @@ pub fn list_tags_for_resource(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2377,7 +2492,8 @@ pub fn modify_activity_stream(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2399,7 +2515,8 @@ pub fn modify_certificates(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2421,7 +2538,8 @@ pub fn modify_current_db_cluster_capacity(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2443,7 +2561,8 @@ pub fn modify_custom_db_engine_version(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2465,7 +2584,8 @@ pub fn modify_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2487,7 +2607,8 @@ pub fn modify_db_cluster_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2509,7 +2630,8 @@ pub fn modify_db_cluster_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2531,7 +2653,8 @@ pub fn modify_db_cluster_snapshot_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2553,7 +2676,8 @@ pub fn modify_db_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2575,7 +2699,8 @@ pub fn modify_db_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2597,7 +2722,8 @@ pub fn modify_db_proxy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2619,7 +2745,8 @@ pub fn modify_db_proxy_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2641,7 +2768,8 @@ pub fn modify_db_proxy_target_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2663,7 +2791,8 @@ pub fn modify_db_recommendation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2685,7 +2814,8 @@ pub fn modify_db_shard_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2707,7 +2837,8 @@ pub fn modify_db_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2729,7 +2860,8 @@ pub fn modify_db_snapshot_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2751,7 +2883,8 @@ pub fn modify_db_subnet_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2773,7 +2906,8 @@ pub fn modify_event_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2795,7 +2929,8 @@ pub fn modify_global_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2817,7 +2952,8 @@ pub fn modify_integration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2839,7 +2975,8 @@ pub fn modify_option_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2861,7 +2998,8 @@ pub fn modify_tenant_database(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2883,7 +3021,8 @@ pub fn promote_read_replica(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2905,7 +3044,8 @@ pub fn promote_read_replica_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2927,7 +3067,8 @@ pub fn purchase_reserved_db_instances_offering(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2949,7 +3090,8 @@ pub fn reboot_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2971,7 +3113,8 @@ pub fn reboot_db_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2993,7 +3136,8 @@ pub fn reboot_db_shard_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3015,7 +3159,8 @@ pub fn register_db_proxy_targets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3037,7 +3182,8 @@ pub fn remove_from_global_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3059,7 +3205,8 @@ pub fn remove_role_from_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3081,7 +3228,8 @@ pub fn remove_role_from_db_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3103,7 +3251,8 @@ pub fn remove_source_identifier_from_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3125,7 +3274,8 @@ pub fn remove_tags_from_resource(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3147,7 +3297,8 @@ pub fn reset_db_cluster_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3169,7 +3320,8 @@ pub fn reset_db_parameter_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3191,7 +3343,8 @@ pub fn restore_db_cluster_from_s3(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3213,7 +3366,8 @@ pub fn restore_db_cluster_from_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3235,7 +3389,8 @@ pub fn restore_db_cluster_to_point_in_time(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3257,7 +3412,8 @@ pub fn restore_db_instance_from_db_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3279,7 +3435,8 @@ pub fn restore_db_instance_from_s3(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3301,7 +3458,8 @@ pub fn restore_db_instance_to_point_in_time(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3323,7 +3481,8 @@ pub fn revoke_db_security_group_ingress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3345,7 +3504,8 @@ pub fn start_activity_stream(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3367,7 +3527,8 @@ pub fn start_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3389,7 +3550,8 @@ pub fn start_db_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3411,7 +3573,8 @@ pub fn start_db_instance_automated_backups_replication(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3433,7 +3596,8 @@ pub fn start_export_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3455,7 +3619,8 @@ pub fn stop_activity_stream(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3477,7 +3642,8 @@ pub fn stop_db_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3499,7 +3665,8 @@ pub fn stop_db_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3521,7 +3688,8 @@ pub fn stop_db_instance_automated_backups_replication(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3543,7 +3711,8 @@ pub fn switchover_blue_green_deployment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3565,7 +3734,8 @@ pub fn switchover_global_cluster(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3587,7 +3757,8 @@ pub fn switchover_read_replica(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

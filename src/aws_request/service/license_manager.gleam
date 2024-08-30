@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -16,25 +16,35 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn accept_grant(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AcceptGrant"
+  let target = metadata.service_id <> ".AcceptGrant"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -47,10 +57,11 @@ pub fn check_in_license(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CheckInLicense"
+  let target = metadata.service_id <> ".CheckInLicense"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -63,10 +74,11 @@ pub fn checkout_borrow_license(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CheckoutBorrowLicense"
+  let target = metadata.service_id <> ".CheckoutBorrowLicense"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -79,10 +91,11 @@ pub fn checkout_license(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CheckoutLicense"
+  let target = metadata.service_id <> ".CheckoutLicense"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -92,10 +105,11 @@ pub fn checkout_license(
 }
 
 pub fn create_grant(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateGrant"
+  let target = metadata.service_id <> ".CreateGrant"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -108,10 +122,11 @@ pub fn create_grant_version(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateGrantVersion"
+  let target = metadata.service_id <> ".CreateGrantVersion"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -124,10 +139,11 @@ pub fn create_license(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateLicense"
+  let target = metadata.service_id <> ".CreateLicense"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -140,10 +156,11 @@ pub fn create_license_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateLicenseConfiguration"
+  let target = metadata.service_id <> ".CreateLicenseConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -156,11 +173,11 @@ pub fn create_license_conversion_task_for_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".CreateLicenseConversionTaskForResource"
+  let target = metadata.service_id <> ".CreateLicenseConversionTaskForResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -173,11 +190,11 @@ pub fn create_license_manager_report_generator(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".CreateLicenseManagerReportGenerator"
+  let target = metadata.service_id <> ".CreateLicenseManagerReportGenerator"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -190,10 +207,11 @@ pub fn create_license_version(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateLicenseVersion"
+  let target = metadata.service_id <> ".CreateLicenseVersion"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -203,10 +221,11 @@ pub fn create_license_version(
 }
 
 pub fn create_token(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateToken"
+  let target = metadata.service_id <> ".CreateToken"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -216,10 +235,11 @@ pub fn create_token(client: Client, request_body: BitArray) -> Request(BitArray)
 }
 
 pub fn delete_grant(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteGrant"
+  let target = metadata.service_id <> ".DeleteGrant"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -232,10 +252,11 @@ pub fn delete_license(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteLicense"
+  let target = metadata.service_id <> ".DeleteLicense"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -248,10 +269,11 @@ pub fn delete_license_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteLicenseConfiguration"
+  let target = metadata.service_id <> ".DeleteLicenseConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -264,11 +286,11 @@ pub fn delete_license_manager_report_generator(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DeleteLicenseManagerReportGenerator"
+  let target = metadata.service_id <> ".DeleteLicenseManagerReportGenerator"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -278,10 +300,11 @@ pub fn delete_license_manager_report_generator(
 }
 
 pub fn delete_token(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteToken"
+  let target = metadata.service_id <> ".DeleteToken"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -294,10 +317,11 @@ pub fn extend_license_consumption(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ExtendLicenseConsumption"
+  let target = metadata.service_id <> ".ExtendLicenseConsumption"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -310,10 +334,11 @@ pub fn get_access_token(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetAccessToken"
+  let target = metadata.service_id <> ".GetAccessToken"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -323,10 +348,11 @@ pub fn get_access_token(
 }
 
 pub fn get_grant(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetGrant"
+  let target = metadata.service_id <> ".GetGrant"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -336,10 +362,11 @@ pub fn get_grant(client: Client, request_body: BitArray) -> Request(BitArray) {
 }
 
 pub fn get_license(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetLicense"
+  let target = metadata.service_id <> ".GetLicense"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -352,10 +379,11 @@ pub fn get_license_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetLicenseConfiguration"
+  let target = metadata.service_id <> ".GetLicenseConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -368,10 +396,11 @@ pub fn get_license_conversion_task(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetLicenseConversionTask"
+  let target = metadata.service_id <> ".GetLicenseConversionTask"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -384,10 +413,11 @@ pub fn get_license_manager_report_generator(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetLicenseManagerReportGenerator"
+  let target = metadata.service_id <> ".GetLicenseManagerReportGenerator"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -400,10 +430,11 @@ pub fn get_license_usage(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetLicenseUsage"
+  let target = metadata.service_id <> ".GetLicenseUsage"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -416,10 +447,11 @@ pub fn get_service_settings(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetServiceSettings"
+  let target = metadata.service_id <> ".GetServiceSettings"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -432,11 +464,11 @@ pub fn list_associations_for_license_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".ListAssociationsForLicenseConfiguration"
+  let target = metadata.service_id <> ".ListAssociationsForLicenseConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -449,10 +481,11 @@ pub fn list_distributed_grants(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListDistributedGrants"
+  let target = metadata.service_id <> ".ListDistributedGrants"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -466,11 +499,11 @@ pub fn list_failures_for_license_configuration_operations(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id
-    <> ".ListFailuresForLicenseConfigurationOperations"
+    metadata.service_id <> ".ListFailuresForLicenseConfigurationOperations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -483,10 +516,11 @@ pub fn list_license_configurations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListLicenseConfigurations"
+  let target = metadata.service_id <> ".ListLicenseConfigurations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -499,10 +533,11 @@ pub fn list_license_conversion_tasks(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListLicenseConversionTasks"
+  let target = metadata.service_id <> ".ListLicenseConversionTasks"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -515,11 +550,11 @@ pub fn list_license_manager_report_generators(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".ListLicenseManagerReportGenerators"
+  let target = metadata.service_id <> ".ListLicenseManagerReportGenerators"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -532,10 +567,11 @@ pub fn list_licenses(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListLicenses"
+  let target = metadata.service_id <> ".ListLicenses"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -548,11 +584,11 @@ pub fn list_license_specifications_for_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".ListLicenseSpecificationsForResource"
+  let target = metadata.service_id <> ".ListLicenseSpecificationsForResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -565,10 +601,11 @@ pub fn list_license_versions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListLicenseVersions"
+  let target = metadata.service_id <> ".ListLicenseVersions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -581,10 +618,11 @@ pub fn list_received_grants(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListReceivedGrants"
+  let target = metadata.service_id <> ".ListReceivedGrants"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -597,10 +635,11 @@ pub fn list_received_grants_for_organization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListReceivedGrantsForOrganization"
+  let target = metadata.service_id <> ".ListReceivedGrantsForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -613,10 +652,11 @@ pub fn list_received_licenses(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListReceivedLicenses"
+  let target = metadata.service_id <> ".ListReceivedLicenses"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -629,11 +669,11 @@ pub fn list_received_licenses_for_organization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".ListReceivedLicensesForOrganization"
+  let target = metadata.service_id <> ".ListReceivedLicensesForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -646,10 +686,11 @@ pub fn list_resource_inventory(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListResourceInventory"
+  let target = metadata.service_id <> ".ListResourceInventory"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -662,10 +703,11 @@ pub fn list_tags_for_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListTagsForResource"
+  let target = metadata.service_id <> ".ListTagsForResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -675,10 +717,11 @@ pub fn list_tags_for_resource(
 }
 
 pub fn list_tokens(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListTokens"
+  let target = metadata.service_id <> ".ListTokens"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -691,10 +734,11 @@ pub fn list_usage_for_license_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListUsageForLicenseConfiguration"
+  let target = metadata.service_id <> ".ListUsageForLicenseConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -704,10 +748,11 @@ pub fn list_usage_for_license_configuration(
 }
 
 pub fn reject_grant(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RejectGrant"
+  let target = metadata.service_id <> ".RejectGrant"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -717,10 +762,11 @@ pub fn reject_grant(client: Client, request_body: BitArray) -> Request(BitArray)
 }
 
 pub fn tag_resource(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".TagResource"
+  let target = metadata.service_id <> ".TagResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -733,10 +779,11 @@ pub fn untag_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UntagResource"
+  let target = metadata.service_id <> ".UntagResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -749,10 +796,11 @@ pub fn update_license_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateLicenseConfiguration"
+  let target = metadata.service_id <> ".UpdateLicenseConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -765,11 +813,11 @@ pub fn update_license_manager_report_generator(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".UpdateLicenseManagerReportGenerator"
+  let target = metadata.service_id <> ".UpdateLicenseManagerReportGenerator"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -782,11 +830,11 @@ pub fn update_license_specifications_for_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".UpdateLicenseSpecificationsForResource"
+  let target = metadata.service_id <> ".UpdateLicenseSpecificationsForResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -799,10 +847,11 @@ pub fn update_service_settings(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateServiceSettings"
+  let target = metadata.service_id <> ".UpdateServiceSettings"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/bit_array
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
@@ -18,18 +18,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn clone_receipt_rule_set(
@@ -45,7 +54,8 @@ pub fn clone_receipt_rule_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -67,7 +77,8 @@ pub fn create_configuration_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -89,7 +100,8 @@ pub fn create_configuration_set_event_destination(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -111,7 +123,8 @@ pub fn create_configuration_set_tracking_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -133,7 +146,8 @@ pub fn create_custom_verification_email_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -155,7 +169,8 @@ pub fn create_receipt_filter(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -177,7 +192,8 @@ pub fn create_receipt_rule(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -199,7 +215,8 @@ pub fn create_receipt_rule_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -221,7 +238,8 @@ pub fn create_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -243,7 +261,8 @@ pub fn delete_configuration_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -265,7 +284,8 @@ pub fn delete_configuration_set_event_destination(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -287,7 +307,8 @@ pub fn delete_configuration_set_tracking_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -309,7 +330,8 @@ pub fn delete_custom_verification_email_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -331,7 +353,8 @@ pub fn delete_identity(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -353,7 +376,8 @@ pub fn delete_identity_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -375,7 +399,8 @@ pub fn delete_receipt_filter(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -397,7 +422,8 @@ pub fn delete_receipt_rule(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -419,7 +445,8 @@ pub fn delete_receipt_rule_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -441,7 +468,8 @@ pub fn delete_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -463,7 +491,8 @@ pub fn delete_verified_email_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -485,7 +514,8 @@ pub fn describe_active_receipt_rule_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -507,7 +537,8 @@ pub fn describe_configuration_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -529,7 +560,8 @@ pub fn describe_receipt_rule(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -551,7 +583,8 @@ pub fn describe_receipt_rule_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -573,7 +606,8 @@ pub fn get_account_sending_enabled(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -595,7 +629,8 @@ pub fn get_custom_verification_email_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -617,7 +652,8 @@ pub fn get_identity_dkim_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -639,7 +675,8 @@ pub fn get_identity_mail_from_domain_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -661,7 +698,8 @@ pub fn get_identity_notification_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -683,7 +721,8 @@ pub fn get_identity_policies(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -705,7 +744,8 @@ pub fn get_identity_verification_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -727,7 +767,8 @@ pub fn get_send_quota(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -749,7 +790,8 @@ pub fn get_send_statistics(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -771,7 +813,8 @@ pub fn get_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -793,7 +836,8 @@ pub fn list_configuration_sets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -815,7 +859,8 @@ pub fn list_custom_verification_email_templates(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -837,7 +882,8 @@ pub fn list_identities(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -859,7 +905,8 @@ pub fn list_identity_policies(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -881,7 +928,8 @@ pub fn list_receipt_filters(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -903,7 +951,8 @@ pub fn list_receipt_rule_sets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -925,7 +974,8 @@ pub fn list_templates(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -947,7 +997,8 @@ pub fn list_verified_email_addresses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -969,7 +1020,8 @@ pub fn put_configuration_set_delivery_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -991,7 +1043,8 @@ pub fn put_identity_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1013,7 +1066,8 @@ pub fn reorder_receipt_rule_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1035,7 +1089,8 @@ pub fn send_bounce(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1057,7 +1112,8 @@ pub fn send_bulk_templated_email(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1079,7 +1135,8 @@ pub fn send_custom_verification_email(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1101,7 +1158,8 @@ pub fn send_email(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1123,7 +1181,8 @@ pub fn send_raw_email(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1145,7 +1204,8 @@ pub fn send_templated_email(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1167,7 +1227,8 @@ pub fn set_active_receipt_rule_set(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1189,7 +1250,8 @@ pub fn set_identity_dkim_enabled(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1211,7 +1273,8 @@ pub fn set_identity_feedback_forwarding_enabled(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1233,7 +1296,8 @@ pub fn set_identity_headers_in_notifications_enabled(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1255,7 +1319,8 @@ pub fn set_identity_mail_from_domain(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1277,7 +1342,8 @@ pub fn set_identity_notification_topic(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1299,7 +1365,8 @@ pub fn set_receipt_rule_position(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1321,7 +1388,8 @@ pub fn test_render_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1343,7 +1411,8 @@ pub fn update_account_sending_enabled(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1365,7 +1434,8 @@ pub fn update_configuration_set_event_destination(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1387,7 +1457,8 @@ pub fn update_configuration_set_reputation_metrics_enabled(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1409,7 +1480,8 @@ pub fn update_configuration_set_sending_enabled(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1431,7 +1503,8 @@ pub fn update_configuration_set_tracking_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1453,7 +1526,8 @@ pub fn update_custom_verification_email_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1475,7 +1549,8 @@ pub fn update_receipt_rule(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1497,7 +1572,8 @@ pub fn update_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1519,7 +1595,8 @@ pub fn verify_domain_dkim(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1541,7 +1618,8 @@ pub fn verify_domain_identity(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1563,7 +1641,8 @@ pub fn verify_email_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1585,7 +1664,8 @@ pub fn verify_email_identity(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

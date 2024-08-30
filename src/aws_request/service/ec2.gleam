@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/bit_array
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
@@ -18,18 +18,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn accept_address_transfer(
@@ -45,7 +54,8 @@ pub fn accept_address_transfer(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -67,7 +77,8 @@ pub fn accept_reserved_instances_exchange_quote(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -89,7 +100,8 @@ pub fn accept_transit_gateway_multicast_domain_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -111,7 +123,8 @@ pub fn accept_transit_gateway_peering_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -133,7 +146,8 @@ pub fn accept_transit_gateway_vpc_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -155,7 +169,8 @@ pub fn accept_vpc_endpoint_connections(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -177,7 +192,8 @@ pub fn accept_vpc_peering_connection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -199,7 +215,8 @@ pub fn advertise_byoip_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -221,7 +238,8 @@ pub fn allocate_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -243,7 +261,8 @@ pub fn allocate_hosts(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -265,7 +284,8 @@ pub fn allocate_ipam_pool_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -287,7 +307,8 @@ pub fn apply_security_groups_to_client_vpn_target_network(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -309,7 +330,8 @@ pub fn assign_ipv6_addresses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -331,7 +353,8 @@ pub fn assign_private_ip_addresses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -353,7 +376,8 @@ pub fn assign_private_nat_gateway_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -375,7 +399,8 @@ pub fn associate_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -397,7 +422,8 @@ pub fn associate_client_vpn_target_network(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -419,7 +445,8 @@ pub fn associate_dhcp_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -441,7 +468,8 @@ pub fn associate_enclave_certificate_iam_role(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -463,7 +491,8 @@ pub fn associate_iam_instance_profile(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -485,7 +514,8 @@ pub fn associate_instance_event_window(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -507,7 +537,8 @@ pub fn associate_ipam_byoasn(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -529,7 +560,8 @@ pub fn associate_ipam_resource_discovery(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -551,7 +583,8 @@ pub fn associate_nat_gateway_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -573,7 +606,8 @@ pub fn associate_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -595,7 +629,8 @@ pub fn associate_subnet_cidr_block(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -617,7 +652,8 @@ pub fn associate_transit_gateway_multicast_domain(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -639,7 +675,8 @@ pub fn associate_transit_gateway_policy_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -661,7 +698,8 @@ pub fn associate_transit_gateway_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -683,7 +721,8 @@ pub fn associate_trunk_interface(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -705,7 +744,8 @@ pub fn associate_vpc_cidr_block(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -727,7 +767,8 @@ pub fn attach_classic_link_vpc(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -749,7 +790,8 @@ pub fn attach_internet_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -771,7 +813,8 @@ pub fn attach_network_interface(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -793,7 +836,8 @@ pub fn attach_verified_access_trust_provider(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -815,7 +859,8 @@ pub fn attach_volume(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -837,7 +882,8 @@ pub fn attach_vpn_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -859,7 +905,8 @@ pub fn authorize_client_vpn_ingress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -881,7 +928,8 @@ pub fn authorize_security_group_egress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -903,7 +951,8 @@ pub fn authorize_security_group_ingress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -925,7 +974,8 @@ pub fn bundle_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -947,7 +997,8 @@ pub fn cancel_bundle_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -969,7 +1020,8 @@ pub fn cancel_capacity_reservation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -991,7 +1043,8 @@ pub fn cancel_capacity_reservation_fleets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1013,7 +1066,8 @@ pub fn cancel_conversion_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1035,7 +1089,8 @@ pub fn cancel_export_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1057,7 +1112,8 @@ pub fn cancel_image_launch_permission(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1079,7 +1135,8 @@ pub fn cancel_import_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1101,7 +1158,8 @@ pub fn cancel_reserved_instances_listing(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1123,7 +1181,8 @@ pub fn cancel_spot_fleet_requests(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1145,7 +1204,8 @@ pub fn cancel_spot_instance_requests(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1167,7 +1227,8 @@ pub fn confirm_product_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1189,7 +1250,8 @@ pub fn copy_fpga_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1211,7 +1273,8 @@ pub fn copy_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1233,7 +1296,8 @@ pub fn copy_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1255,7 +1319,8 @@ pub fn create_capacity_reservation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1277,7 +1342,8 @@ pub fn create_capacity_reservation_fleet(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1299,7 +1365,8 @@ pub fn create_carrier_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1321,7 +1388,8 @@ pub fn create_client_vpn_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1343,7 +1411,8 @@ pub fn create_client_vpn_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1365,7 +1434,8 @@ pub fn create_coip_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1387,7 +1457,8 @@ pub fn create_coip_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1409,7 +1480,8 @@ pub fn create_customer_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1431,7 +1503,8 @@ pub fn create_default_subnet(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1453,7 +1526,8 @@ pub fn create_default_vpc(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1475,7 +1549,8 @@ pub fn create_dhcp_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1497,7 +1572,8 @@ pub fn create_egress_only_internet_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1519,7 +1595,8 @@ pub fn create_fleet(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1541,7 +1618,8 @@ pub fn create_flow_logs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1563,7 +1641,8 @@ pub fn create_fpga_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1585,7 +1664,8 @@ pub fn create_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1607,7 +1687,8 @@ pub fn create_instance_connect_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1629,7 +1710,8 @@ pub fn create_instance_event_window(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1651,7 +1733,8 @@ pub fn create_instance_export_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1673,7 +1756,8 @@ pub fn create_internet_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1695,7 +1779,8 @@ pub fn create_ipam(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1717,7 +1802,8 @@ pub fn create_ipam_external_resource_verification_token(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1739,7 +1825,8 @@ pub fn create_ipam_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1761,7 +1848,8 @@ pub fn create_ipam_resource_discovery(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1783,7 +1871,8 @@ pub fn create_ipam_scope(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1805,7 +1894,8 @@ pub fn create_key_pair(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1827,7 +1917,8 @@ pub fn create_launch_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1849,7 +1940,8 @@ pub fn create_launch_template_version(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1871,7 +1963,8 @@ pub fn create_local_gateway_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1893,7 +1986,8 @@ pub fn create_local_gateway_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1915,7 +2009,8 @@ pub fn create_local_gateway_route_table_virtual_interface_group_association(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1937,7 +2032,8 @@ pub fn create_local_gateway_route_table_vpc_association(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1959,7 +2055,8 @@ pub fn create_managed_prefix_list(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1981,7 +2078,8 @@ pub fn create_nat_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2003,7 +2101,8 @@ pub fn create_network_acl(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2025,7 +2124,8 @@ pub fn create_network_acl_entry(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2047,7 +2147,8 @@ pub fn create_network_insights_access_scope(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2069,7 +2170,8 @@ pub fn create_network_insights_path(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2091,7 +2193,8 @@ pub fn create_network_interface(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2113,7 +2216,8 @@ pub fn create_network_interface_permission(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2135,7 +2239,8 @@ pub fn create_placement_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2157,7 +2262,8 @@ pub fn create_public_ipv4_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2179,7 +2285,8 @@ pub fn create_replace_root_volume_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2201,7 +2308,8 @@ pub fn create_reserved_instances_listing(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2223,7 +2331,8 @@ pub fn create_restore_image_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2245,7 +2354,8 @@ pub fn create_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2267,7 +2377,8 @@ pub fn create_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2289,7 +2400,8 @@ pub fn create_security_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2311,7 +2423,8 @@ pub fn create_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2333,7 +2446,8 @@ pub fn create_snapshots(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2355,7 +2469,8 @@ pub fn create_spot_datafeed_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2377,7 +2492,8 @@ pub fn create_store_image_task(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2399,7 +2515,8 @@ pub fn create_subnet(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2421,7 +2538,8 @@ pub fn create_subnet_cidr_reservation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2443,7 +2561,8 @@ pub fn create_tags(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2465,7 +2584,8 @@ pub fn create_traffic_mirror_filter(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2487,7 +2607,8 @@ pub fn create_traffic_mirror_filter_rule(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2509,7 +2630,8 @@ pub fn create_traffic_mirror_session(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2531,7 +2653,8 @@ pub fn create_traffic_mirror_target(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2553,7 +2676,8 @@ pub fn create_transit_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2575,7 +2699,8 @@ pub fn create_transit_gateway_connect(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2597,7 +2722,8 @@ pub fn create_transit_gateway_connect_peer(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2619,7 +2745,8 @@ pub fn create_transit_gateway_multicast_domain(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2641,7 +2768,8 @@ pub fn create_transit_gateway_peering_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2663,7 +2791,8 @@ pub fn create_transit_gateway_policy_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2685,7 +2814,8 @@ pub fn create_transit_gateway_prefix_list_reference(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2707,7 +2837,8 @@ pub fn create_transit_gateway_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2729,7 +2860,8 @@ pub fn create_transit_gateway_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2751,7 +2883,8 @@ pub fn create_transit_gateway_route_table_announcement(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2773,7 +2906,8 @@ pub fn create_transit_gateway_vpc_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2795,7 +2929,8 @@ pub fn create_verified_access_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2817,7 +2952,8 @@ pub fn create_verified_access_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2839,7 +2975,8 @@ pub fn create_verified_access_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2861,7 +2998,8 @@ pub fn create_verified_access_trust_provider(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2883,7 +3021,8 @@ pub fn create_volume(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2905,7 +3044,8 @@ pub fn create_vpc(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2927,7 +3067,8 @@ pub fn create_vpc_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2949,7 +3090,8 @@ pub fn create_vpc_endpoint_connection_notification(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2971,7 +3113,8 @@ pub fn create_vpc_endpoint_service_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -2993,7 +3136,8 @@ pub fn create_vpc_peering_connection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3015,7 +3159,8 @@ pub fn create_vpn_connection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3037,7 +3182,8 @@ pub fn create_vpn_connection_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3059,7 +3205,8 @@ pub fn create_vpn_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3081,7 +3228,8 @@ pub fn delete_carrier_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3103,7 +3251,8 @@ pub fn delete_client_vpn_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3125,7 +3274,8 @@ pub fn delete_client_vpn_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3147,7 +3297,8 @@ pub fn delete_coip_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3169,7 +3320,8 @@ pub fn delete_coip_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3191,7 +3343,8 @@ pub fn delete_customer_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3213,7 +3366,8 @@ pub fn delete_dhcp_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3235,7 +3389,8 @@ pub fn delete_egress_only_internet_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3257,7 +3412,8 @@ pub fn delete_fleets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3279,7 +3435,8 @@ pub fn delete_flow_logs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3301,7 +3458,8 @@ pub fn delete_fpga_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3323,7 +3481,8 @@ pub fn delete_instance_connect_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3345,7 +3504,8 @@ pub fn delete_instance_event_window(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3367,7 +3527,8 @@ pub fn delete_internet_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3389,7 +3550,8 @@ pub fn delete_ipam(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3411,7 +3573,8 @@ pub fn delete_ipam_external_resource_verification_token(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3433,7 +3596,8 @@ pub fn delete_ipam_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3455,7 +3619,8 @@ pub fn delete_ipam_resource_discovery(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3477,7 +3642,8 @@ pub fn delete_ipam_scope(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3499,7 +3665,8 @@ pub fn delete_key_pair(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3521,7 +3688,8 @@ pub fn delete_launch_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3543,7 +3711,8 @@ pub fn delete_launch_template_versions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3565,7 +3734,8 @@ pub fn delete_local_gateway_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3587,7 +3757,8 @@ pub fn delete_local_gateway_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3609,7 +3780,8 @@ pub fn delete_local_gateway_route_table_virtual_interface_group_association(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3631,7 +3803,8 @@ pub fn delete_local_gateway_route_table_vpc_association(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3653,7 +3826,8 @@ pub fn delete_managed_prefix_list(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3675,7 +3849,8 @@ pub fn delete_nat_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3697,7 +3872,8 @@ pub fn delete_network_acl(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3719,7 +3895,8 @@ pub fn delete_network_acl_entry(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3741,7 +3918,8 @@ pub fn delete_network_insights_access_scope(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3763,7 +3941,8 @@ pub fn delete_network_insights_access_scope_analysis(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3785,7 +3964,8 @@ pub fn delete_network_insights_analysis(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3807,7 +3987,8 @@ pub fn delete_network_insights_path(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3829,7 +4010,8 @@ pub fn delete_network_interface(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3851,7 +4033,8 @@ pub fn delete_network_interface_permission(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3873,7 +4056,8 @@ pub fn delete_placement_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3895,7 +4079,8 @@ pub fn delete_public_ipv4_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3917,7 +4102,8 @@ pub fn delete_queued_reserved_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3939,7 +4125,8 @@ pub fn delete_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3961,7 +4148,8 @@ pub fn delete_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -3983,7 +4171,8 @@ pub fn delete_security_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4005,7 +4194,8 @@ pub fn delete_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4027,7 +4217,8 @@ pub fn delete_spot_datafeed_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4049,7 +4240,8 @@ pub fn delete_subnet(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4071,7 +4263,8 @@ pub fn delete_subnet_cidr_reservation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4093,7 +4286,8 @@ pub fn delete_tags(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4115,7 +4309,8 @@ pub fn delete_traffic_mirror_filter(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4137,7 +4332,8 @@ pub fn delete_traffic_mirror_filter_rule(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4159,7 +4355,8 @@ pub fn delete_traffic_mirror_session(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4181,7 +4378,8 @@ pub fn delete_traffic_mirror_target(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4203,7 +4401,8 @@ pub fn delete_transit_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4225,7 +4424,8 @@ pub fn delete_transit_gateway_connect(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4247,7 +4447,8 @@ pub fn delete_transit_gateway_connect_peer(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4269,7 +4470,8 @@ pub fn delete_transit_gateway_multicast_domain(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4291,7 +4493,8 @@ pub fn delete_transit_gateway_peering_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4313,7 +4516,8 @@ pub fn delete_transit_gateway_policy_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4335,7 +4539,8 @@ pub fn delete_transit_gateway_prefix_list_reference(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4357,7 +4562,8 @@ pub fn delete_transit_gateway_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4379,7 +4585,8 @@ pub fn delete_transit_gateway_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4401,7 +4608,8 @@ pub fn delete_transit_gateway_route_table_announcement(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4423,7 +4631,8 @@ pub fn delete_transit_gateway_vpc_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4445,7 +4654,8 @@ pub fn delete_verified_access_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4467,7 +4677,8 @@ pub fn delete_verified_access_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4489,7 +4700,8 @@ pub fn delete_verified_access_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4511,7 +4723,8 @@ pub fn delete_verified_access_trust_provider(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4533,7 +4746,8 @@ pub fn delete_volume(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4555,7 +4769,8 @@ pub fn delete_vpc(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4577,7 +4792,8 @@ pub fn delete_vpc_endpoint_connection_notifications(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4599,7 +4815,8 @@ pub fn delete_vpc_endpoints(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4621,7 +4838,8 @@ pub fn delete_vpc_endpoint_service_configurations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4643,7 +4861,8 @@ pub fn delete_vpc_peering_connection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4665,7 +4884,8 @@ pub fn delete_vpn_connection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4687,7 +4907,8 @@ pub fn delete_vpn_connection_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4709,7 +4930,8 @@ pub fn delete_vpn_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4731,7 +4953,8 @@ pub fn deprovision_byoip_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4753,7 +4976,8 @@ pub fn deprovision_ipam_byoasn(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4775,7 +4999,8 @@ pub fn deprovision_ipam_pool_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4797,7 +5022,8 @@ pub fn deprovision_public_ipv4_pool_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4819,7 +5045,8 @@ pub fn deregister_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4841,7 +5068,8 @@ pub fn deregister_instance_event_notification_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4863,7 +5091,8 @@ pub fn deregister_transit_gateway_multicast_group_members(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4885,7 +5114,8 @@ pub fn deregister_transit_gateway_multicast_group_sources(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4907,7 +5137,8 @@ pub fn describe_account_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4929,7 +5160,8 @@ pub fn describe_addresses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4951,7 +5183,8 @@ pub fn describe_addresses_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4973,7 +5206,8 @@ pub fn describe_address_transfers(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -4995,7 +5229,8 @@ pub fn describe_aggregate_id_format(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5017,7 +5252,8 @@ pub fn describe_availability_zones(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5039,7 +5275,8 @@ pub fn describe_aws_network_performance_metric_subscriptions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5061,7 +5298,8 @@ pub fn describe_bundle_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5083,7 +5321,8 @@ pub fn describe_byoip_cidrs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5105,7 +5344,8 @@ pub fn describe_capacity_block_offerings(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5127,7 +5367,8 @@ pub fn describe_capacity_reservation_fleets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5149,7 +5390,8 @@ pub fn describe_capacity_reservations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5171,7 +5413,8 @@ pub fn describe_carrier_gateways(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5193,7 +5436,8 @@ pub fn describe_classic_link_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5215,7 +5459,8 @@ pub fn describe_client_vpn_authorization_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5237,7 +5482,8 @@ pub fn describe_client_vpn_connections(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5259,7 +5505,8 @@ pub fn describe_client_vpn_endpoints(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5281,7 +5528,8 @@ pub fn describe_client_vpn_routes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5303,7 +5551,8 @@ pub fn describe_client_vpn_target_networks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5325,7 +5574,8 @@ pub fn describe_coip_pools(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5347,7 +5597,8 @@ pub fn describe_conversion_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5369,7 +5620,8 @@ pub fn describe_customer_gateways(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5391,7 +5643,8 @@ pub fn describe_dhcp_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5413,7 +5666,8 @@ pub fn describe_egress_only_internet_gateways(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5435,7 +5689,8 @@ pub fn describe_elastic_gpus(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5457,7 +5712,8 @@ pub fn describe_export_image_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5479,7 +5735,8 @@ pub fn describe_export_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5501,7 +5758,8 @@ pub fn describe_fast_launch_images(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5523,7 +5781,8 @@ pub fn describe_fast_snapshot_restores(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5545,7 +5804,8 @@ pub fn describe_fleet_history(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5567,7 +5827,8 @@ pub fn describe_fleet_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5589,7 +5850,8 @@ pub fn describe_fleets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5611,7 +5873,8 @@ pub fn describe_flow_logs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5633,7 +5896,8 @@ pub fn describe_fpga_image_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5655,7 +5919,8 @@ pub fn describe_fpga_images(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5677,7 +5942,8 @@ pub fn describe_host_reservation_offerings(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5699,7 +5965,8 @@ pub fn describe_host_reservations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5721,7 +5988,8 @@ pub fn describe_hosts(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5743,7 +6011,8 @@ pub fn describe_iam_instance_profile_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5765,7 +6034,8 @@ pub fn describe_identity_id_format(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5787,7 +6057,8 @@ pub fn describe_id_format(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5809,7 +6080,8 @@ pub fn describe_image_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5831,7 +6103,8 @@ pub fn describe_images(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5853,7 +6126,8 @@ pub fn describe_import_image_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5875,7 +6149,8 @@ pub fn describe_import_snapshot_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5897,7 +6172,8 @@ pub fn describe_instance_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5919,7 +6195,8 @@ pub fn describe_instance_connect_endpoints(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5941,7 +6218,8 @@ pub fn describe_instance_credit_specifications(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5963,7 +6241,8 @@ pub fn describe_instance_event_notification_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -5985,7 +6264,8 @@ pub fn describe_instance_event_windows(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6007,7 +6287,8 @@ pub fn describe_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6029,7 +6310,8 @@ pub fn describe_instance_status(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6051,7 +6333,8 @@ pub fn describe_instance_topology(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6073,7 +6356,8 @@ pub fn describe_instance_type_offerings(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6095,7 +6379,8 @@ pub fn describe_instance_types(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6117,7 +6402,8 @@ pub fn describe_internet_gateways(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6139,7 +6425,8 @@ pub fn describe_ipam_byoasn(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6161,7 +6448,8 @@ pub fn describe_ipam_external_resource_verification_tokens(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6183,7 +6471,8 @@ pub fn describe_ipam_pools(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6205,7 +6494,8 @@ pub fn describe_ipam_resource_discoveries(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6227,7 +6517,8 @@ pub fn describe_ipam_resource_discovery_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6249,7 +6540,8 @@ pub fn describe_ipams(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6271,7 +6563,8 @@ pub fn describe_ipam_scopes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6293,7 +6586,8 @@ pub fn describe_ipv6_pools(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6315,7 +6609,8 @@ pub fn describe_key_pairs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6337,7 +6632,8 @@ pub fn describe_launch_templates(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6359,7 +6655,8 @@ pub fn describe_launch_template_versions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6381,7 +6678,8 @@ pub fn describe_local_gateway_route_tables(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6403,7 +6701,8 @@ pub fn describe_local_gateway_route_table_virtual_interface_group_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6425,7 +6724,8 @@ pub fn describe_local_gateway_route_table_vpc_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6447,7 +6747,8 @@ pub fn describe_local_gateways(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6469,7 +6770,8 @@ pub fn describe_local_gateway_virtual_interface_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6491,7 +6793,8 @@ pub fn describe_local_gateway_virtual_interfaces(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6513,7 +6816,8 @@ pub fn describe_locked_snapshots(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6535,7 +6839,8 @@ pub fn describe_mac_hosts(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6557,7 +6862,8 @@ pub fn describe_managed_prefix_lists(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6579,7 +6885,8 @@ pub fn describe_moving_addresses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6601,7 +6908,8 @@ pub fn describe_nat_gateways(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6623,7 +6931,8 @@ pub fn describe_network_acls(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6645,7 +6954,8 @@ pub fn describe_network_insights_access_scope_analyses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6667,7 +6977,8 @@ pub fn describe_network_insights_access_scopes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6689,7 +7000,8 @@ pub fn describe_network_insights_analyses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6711,7 +7023,8 @@ pub fn describe_network_insights_paths(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6733,7 +7046,8 @@ pub fn describe_network_interface_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6755,7 +7069,8 @@ pub fn describe_network_interface_permissions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6777,7 +7092,8 @@ pub fn describe_network_interfaces(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6799,7 +7115,8 @@ pub fn describe_placement_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6821,7 +7138,8 @@ pub fn describe_prefix_lists(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6843,7 +7161,8 @@ pub fn describe_principal_id_format(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6865,7 +7184,8 @@ pub fn describe_public_ipv4_pools(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6887,7 +7207,8 @@ pub fn describe_regions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6909,7 +7230,8 @@ pub fn describe_replace_root_volume_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6931,7 +7253,8 @@ pub fn describe_reserved_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6953,7 +7276,8 @@ pub fn describe_reserved_instances_listings(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6975,7 +7299,8 @@ pub fn describe_reserved_instances_modifications(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -6997,7 +7322,8 @@ pub fn describe_reserved_instances_offerings(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7019,7 +7345,8 @@ pub fn describe_route_tables(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7041,7 +7368,8 @@ pub fn describe_scheduled_instance_availability(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7063,7 +7391,8 @@ pub fn describe_scheduled_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7085,7 +7414,8 @@ pub fn describe_security_group_references(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7107,7 +7437,8 @@ pub fn describe_security_group_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7129,7 +7460,8 @@ pub fn describe_security_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7151,7 +7483,8 @@ pub fn describe_snapshot_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7173,7 +7506,8 @@ pub fn describe_snapshots(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7195,7 +7529,8 @@ pub fn describe_snapshot_tier_status(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7217,7 +7552,8 @@ pub fn describe_spot_datafeed_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7239,7 +7575,8 @@ pub fn describe_spot_fleet_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7261,7 +7598,8 @@ pub fn describe_spot_fleet_request_history(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7283,7 +7621,8 @@ pub fn describe_spot_fleet_requests(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7305,7 +7644,8 @@ pub fn describe_spot_instance_requests(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7327,7 +7667,8 @@ pub fn describe_spot_price_history(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7349,7 +7690,8 @@ pub fn describe_stale_security_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7371,7 +7713,8 @@ pub fn describe_store_image_tasks(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7393,7 +7736,8 @@ pub fn describe_subnets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7415,7 +7759,8 @@ pub fn describe_tags(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7437,7 +7782,8 @@ pub fn describe_traffic_mirror_filter_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7459,7 +7805,8 @@ pub fn describe_traffic_mirror_filters(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7481,7 +7828,8 @@ pub fn describe_traffic_mirror_sessions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7503,7 +7851,8 @@ pub fn describe_traffic_mirror_targets(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7525,7 +7874,8 @@ pub fn describe_transit_gateway_attachments(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7547,7 +7897,8 @@ pub fn describe_transit_gateway_connect_peers(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7569,7 +7920,8 @@ pub fn describe_transit_gateway_connects(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7591,7 +7943,8 @@ pub fn describe_transit_gateway_multicast_domains(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7613,7 +7966,8 @@ pub fn describe_transit_gateway_peering_attachments(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7635,7 +7989,8 @@ pub fn describe_transit_gateway_policy_tables(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7657,7 +8012,8 @@ pub fn describe_transit_gateway_route_table_announcements(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7679,7 +8035,8 @@ pub fn describe_transit_gateway_route_tables(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7701,7 +8058,8 @@ pub fn describe_transit_gateways(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7723,7 +8081,8 @@ pub fn describe_transit_gateway_vpc_attachments(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7745,7 +8104,8 @@ pub fn describe_trunk_interface_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7767,7 +8127,8 @@ pub fn describe_verified_access_endpoints(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7789,7 +8150,8 @@ pub fn describe_verified_access_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7811,7 +8173,8 @@ pub fn describe_verified_access_instance_logging_configurations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7833,7 +8196,8 @@ pub fn describe_verified_access_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7855,7 +8219,8 @@ pub fn describe_verified_access_trust_providers(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7877,7 +8242,8 @@ pub fn describe_volume_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7899,7 +8265,8 @@ pub fn describe_volumes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7921,7 +8288,8 @@ pub fn describe_volumes_modifications(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7943,7 +8311,8 @@ pub fn describe_volume_status(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7965,7 +8334,8 @@ pub fn describe_vpc_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -7987,7 +8357,8 @@ pub fn describe_vpc_classic_link(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8009,7 +8380,8 @@ pub fn describe_vpc_classic_link_dns_support(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8031,7 +8403,8 @@ pub fn describe_vpc_endpoint_connection_notifications(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8053,7 +8426,8 @@ pub fn describe_vpc_endpoint_connections(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8075,7 +8449,8 @@ pub fn describe_vpc_endpoints(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8097,7 +8472,8 @@ pub fn describe_vpc_endpoint_service_configurations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8119,7 +8495,8 @@ pub fn describe_vpc_endpoint_service_permissions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8141,7 +8518,8 @@ pub fn describe_vpc_endpoint_services(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8163,7 +8541,8 @@ pub fn describe_vpc_peering_connections(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8185,7 +8564,8 @@ pub fn describe_vpcs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8207,7 +8587,8 @@ pub fn describe_vpn_connections(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8229,7 +8610,8 @@ pub fn describe_vpn_gateways(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8251,7 +8633,8 @@ pub fn detach_classic_link_vpc(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8273,7 +8656,8 @@ pub fn detach_internet_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8295,7 +8679,8 @@ pub fn detach_network_interface(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8317,7 +8702,8 @@ pub fn detach_verified_access_trust_provider(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8339,7 +8725,8 @@ pub fn detach_volume(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8361,7 +8748,8 @@ pub fn detach_vpn_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8383,7 +8771,8 @@ pub fn disable_address_transfer(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8405,7 +8794,8 @@ pub fn disable_aws_network_performance_metric_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8427,7 +8817,8 @@ pub fn disable_ebs_encryption_by_default(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8449,7 +8840,8 @@ pub fn disable_fast_launch(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8471,7 +8863,8 @@ pub fn disable_fast_snapshot_restores(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8493,7 +8886,8 @@ pub fn disable_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8515,7 +8909,8 @@ pub fn disable_image_block_public_access(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8537,7 +8932,8 @@ pub fn disable_image_deprecation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8559,7 +8955,8 @@ pub fn disable_image_deregistration_protection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8581,7 +8978,8 @@ pub fn disable_ipam_organization_admin_account(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8603,7 +9001,8 @@ pub fn disable_serial_console_access(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8625,7 +9024,8 @@ pub fn disable_snapshot_block_public_access(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8647,7 +9047,8 @@ pub fn disable_transit_gateway_route_table_propagation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8669,7 +9070,8 @@ pub fn disable_vgw_route_propagation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8691,7 +9093,8 @@ pub fn disable_vpc_classic_link(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8713,7 +9116,8 @@ pub fn disable_vpc_classic_link_dns_support(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8735,7 +9139,8 @@ pub fn disassociate_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8757,7 +9162,8 @@ pub fn disassociate_client_vpn_target_network(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8779,7 +9185,8 @@ pub fn disassociate_enclave_certificate_iam_role(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8801,7 +9208,8 @@ pub fn disassociate_iam_instance_profile(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8823,7 +9231,8 @@ pub fn disassociate_instance_event_window(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8845,7 +9254,8 @@ pub fn disassociate_ipam_byoasn(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8867,7 +9277,8 @@ pub fn disassociate_ipam_resource_discovery(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8889,7 +9300,8 @@ pub fn disassociate_nat_gateway_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8911,7 +9323,8 @@ pub fn disassociate_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8933,7 +9346,8 @@ pub fn disassociate_subnet_cidr_block(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8955,7 +9369,8 @@ pub fn disassociate_transit_gateway_multicast_domain(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8977,7 +9392,8 @@ pub fn disassociate_transit_gateway_policy_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -8999,7 +9415,8 @@ pub fn disassociate_transit_gateway_route_table(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9021,7 +9438,8 @@ pub fn disassociate_trunk_interface(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9043,7 +9461,8 @@ pub fn disassociate_vpc_cidr_block(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9065,7 +9484,8 @@ pub fn enable_address_transfer(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9087,7 +9507,8 @@ pub fn enable_aws_network_performance_metric_subscription(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9109,7 +9530,8 @@ pub fn enable_ebs_encryption_by_default(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9131,7 +9553,8 @@ pub fn enable_fast_launch(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9153,7 +9576,8 @@ pub fn enable_fast_snapshot_restores(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9175,7 +9599,8 @@ pub fn enable_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9197,7 +9622,8 @@ pub fn enable_image_block_public_access(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9219,7 +9645,8 @@ pub fn enable_image_deprecation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9241,7 +9668,8 @@ pub fn enable_image_deregistration_protection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9263,7 +9691,8 @@ pub fn enable_ipam_organization_admin_account(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9285,7 +9714,8 @@ pub fn enable_reachability_analyzer_organization_sharing(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9307,7 +9737,8 @@ pub fn enable_serial_console_access(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9329,7 +9760,8 @@ pub fn enable_snapshot_block_public_access(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9351,7 +9783,8 @@ pub fn enable_transit_gateway_route_table_propagation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9373,7 +9806,8 @@ pub fn enable_vgw_route_propagation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9395,7 +9829,8 @@ pub fn enable_volume_io(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9417,7 +9852,8 @@ pub fn enable_vpc_classic_link(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9439,7 +9875,8 @@ pub fn enable_vpc_classic_link_dns_support(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9461,7 +9898,8 @@ pub fn export_client_vpn_client_certificate_revocation_list(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9483,7 +9921,8 @@ pub fn export_client_vpn_client_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9505,7 +9944,8 @@ pub fn export_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9527,7 +9967,8 @@ pub fn export_transit_gateway_routes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9549,7 +9990,8 @@ pub fn get_associated_enclave_certificate_iam_roles(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9571,7 +10013,8 @@ pub fn get_associated_ipv6_pool_cidrs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9593,7 +10036,8 @@ pub fn get_aws_network_performance_data(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9615,7 +10059,8 @@ pub fn get_capacity_reservation_usage(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9637,7 +10082,8 @@ pub fn get_coip_pool_usage(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9659,7 +10105,8 @@ pub fn get_console_output(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9681,7 +10128,8 @@ pub fn get_console_screenshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9703,7 +10151,8 @@ pub fn get_default_credit_specification(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9725,7 +10174,8 @@ pub fn get_ebs_default_kms_key_id(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9747,7 +10197,8 @@ pub fn get_ebs_encryption_by_default(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9769,7 +10220,8 @@ pub fn get_flow_logs_integration_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9791,7 +10243,8 @@ pub fn get_groups_for_capacity_reservation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9813,7 +10266,8 @@ pub fn get_host_reservation_purchase_preview(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9835,7 +10289,8 @@ pub fn get_image_block_public_access_state(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9857,7 +10312,8 @@ pub fn get_instance_metadata_defaults(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9879,7 +10335,8 @@ pub fn get_instance_tpm_ek_pub(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9901,7 +10358,8 @@ pub fn get_instance_types_from_instance_requirements(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9923,7 +10381,8 @@ pub fn get_instance_uefi_data(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9945,7 +10404,8 @@ pub fn get_ipam_address_history(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9967,7 +10427,8 @@ pub fn get_ipam_discovered_accounts(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -9989,7 +10450,8 @@ pub fn get_ipam_discovered_public_addresses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10011,7 +10473,8 @@ pub fn get_ipam_discovered_resource_cidrs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10033,7 +10496,8 @@ pub fn get_ipam_pool_allocations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10055,7 +10519,8 @@ pub fn get_ipam_pool_cidrs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10077,7 +10542,8 @@ pub fn get_ipam_resource_cidrs(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10099,7 +10565,8 @@ pub fn get_launch_template_data(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10121,7 +10588,8 @@ pub fn get_managed_prefix_list_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10143,7 +10611,8 @@ pub fn get_managed_prefix_list_entries(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10165,7 +10634,8 @@ pub fn get_network_insights_access_scope_analysis_findings(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10187,7 +10657,8 @@ pub fn get_network_insights_access_scope_content(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10209,7 +10680,8 @@ pub fn get_password_data(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10231,7 +10703,8 @@ pub fn get_reserved_instances_exchange_quote(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10253,7 +10726,8 @@ pub fn get_security_groups_for_vpc(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10275,7 +10749,8 @@ pub fn get_serial_console_access_status(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10297,7 +10772,8 @@ pub fn get_snapshot_block_public_access_state(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10319,7 +10795,8 @@ pub fn get_spot_placement_scores(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10341,7 +10818,8 @@ pub fn get_subnet_cidr_reservations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10363,7 +10841,8 @@ pub fn get_transit_gateway_attachment_propagations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10385,7 +10864,8 @@ pub fn get_transit_gateway_multicast_domain_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10407,7 +10887,8 @@ pub fn get_transit_gateway_policy_table_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10429,7 +10910,8 @@ pub fn get_transit_gateway_policy_table_entries(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10451,7 +10933,8 @@ pub fn get_transit_gateway_prefix_list_references(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10473,7 +10956,8 @@ pub fn get_transit_gateway_route_table_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10495,7 +10979,8 @@ pub fn get_transit_gateway_route_table_propagations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10517,7 +11002,8 @@ pub fn get_verified_access_endpoint_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10539,7 +11025,8 @@ pub fn get_verified_access_group_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10561,7 +11048,8 @@ pub fn get_vpn_connection_device_sample_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10583,7 +11071,8 @@ pub fn get_vpn_connection_device_types(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10605,7 +11094,8 @@ pub fn get_vpn_tunnel_replacement_status(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10627,7 +11117,8 @@ pub fn import_client_vpn_client_certificate_revocation_list(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10649,7 +11140,8 @@ pub fn import_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10671,7 +11163,8 @@ pub fn import_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10693,7 +11186,8 @@ pub fn import_key_pair(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10715,7 +11209,8 @@ pub fn import_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10737,7 +11232,8 @@ pub fn import_volume(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10759,7 +11255,8 @@ pub fn list_images_in_recycle_bin(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10781,7 +11278,8 @@ pub fn list_snapshots_in_recycle_bin(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10803,7 +11301,8 @@ pub fn lock_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10825,7 +11324,8 @@ pub fn modify_address_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10847,7 +11347,8 @@ pub fn modify_availability_zone_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10869,7 +11370,8 @@ pub fn modify_capacity_reservation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10891,7 +11393,8 @@ pub fn modify_capacity_reservation_fleet(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10913,7 +11416,8 @@ pub fn modify_client_vpn_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10935,7 +11439,8 @@ pub fn modify_default_credit_specification(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10957,7 +11462,8 @@ pub fn modify_ebs_default_kms_key_id(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -10979,7 +11485,8 @@ pub fn modify_fleet(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11001,7 +11508,8 @@ pub fn modify_fpga_image_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11023,7 +11531,8 @@ pub fn modify_hosts(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11045,7 +11554,8 @@ pub fn modify_identity_id_format(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11067,7 +11577,8 @@ pub fn modify_id_format(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11089,7 +11600,8 @@ pub fn modify_image_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11111,7 +11623,8 @@ pub fn modify_instance_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11133,7 +11646,8 @@ pub fn modify_instance_capacity_reservation_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11155,7 +11669,8 @@ pub fn modify_instance_credit_specification(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11177,7 +11692,8 @@ pub fn modify_instance_event_start_time(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11199,7 +11715,8 @@ pub fn modify_instance_event_window(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11221,7 +11738,8 @@ pub fn modify_instance_maintenance_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11243,7 +11761,8 @@ pub fn modify_instance_metadata_defaults(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11265,7 +11784,8 @@ pub fn modify_instance_metadata_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11287,7 +11807,8 @@ pub fn modify_instance_placement(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11309,7 +11830,8 @@ pub fn modify_ipam(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11331,7 +11853,8 @@ pub fn modify_ipam_pool(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11353,7 +11876,8 @@ pub fn modify_ipam_resource_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11375,7 +11899,8 @@ pub fn modify_ipam_resource_discovery(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11397,7 +11922,8 @@ pub fn modify_ipam_scope(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11419,7 +11945,8 @@ pub fn modify_launch_template(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11441,7 +11968,8 @@ pub fn modify_local_gateway_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11463,7 +11991,8 @@ pub fn modify_managed_prefix_list(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11485,7 +12014,8 @@ pub fn modify_network_interface_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11507,7 +12037,8 @@ pub fn modify_private_dns_name_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11529,7 +12060,8 @@ pub fn modify_reserved_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11551,7 +12083,8 @@ pub fn modify_security_group_rules(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11573,7 +12106,8 @@ pub fn modify_snapshot_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11595,7 +12129,8 @@ pub fn modify_snapshot_tier(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11617,7 +12152,8 @@ pub fn modify_spot_fleet_request(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11639,7 +12175,8 @@ pub fn modify_subnet_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11661,7 +12198,8 @@ pub fn modify_traffic_mirror_filter_network_services(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11683,7 +12221,8 @@ pub fn modify_traffic_mirror_filter_rule(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11705,7 +12244,8 @@ pub fn modify_traffic_mirror_session(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11727,7 +12267,8 @@ pub fn modify_transit_gateway(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11749,7 +12290,8 @@ pub fn modify_transit_gateway_prefix_list_reference(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11771,7 +12313,8 @@ pub fn modify_transit_gateway_vpc_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11793,7 +12336,8 @@ pub fn modify_verified_access_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11815,7 +12359,8 @@ pub fn modify_verified_access_endpoint_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11837,7 +12382,8 @@ pub fn modify_verified_access_group(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11859,7 +12405,8 @@ pub fn modify_verified_access_group_policy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11881,7 +12428,8 @@ pub fn modify_verified_access_instance(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11903,7 +12451,8 @@ pub fn modify_verified_access_instance_logging_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11925,7 +12474,8 @@ pub fn modify_verified_access_trust_provider(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11947,7 +12497,8 @@ pub fn modify_volume(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11969,7 +12520,8 @@ pub fn modify_volume_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -11991,7 +12543,8 @@ pub fn modify_vpc_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12013,7 +12566,8 @@ pub fn modify_vpc_endpoint(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12035,7 +12589,8 @@ pub fn modify_vpc_endpoint_connection_notification(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12057,7 +12612,8 @@ pub fn modify_vpc_endpoint_service_configuration(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12079,7 +12635,8 @@ pub fn modify_vpc_endpoint_service_payer_responsibility(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12101,7 +12658,8 @@ pub fn modify_vpc_endpoint_service_permissions(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12123,7 +12681,8 @@ pub fn modify_vpc_peering_connection_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12145,7 +12704,8 @@ pub fn modify_vpc_tenancy(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12167,7 +12727,8 @@ pub fn modify_vpn_connection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12189,7 +12750,8 @@ pub fn modify_vpn_connection_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12211,7 +12773,8 @@ pub fn modify_vpn_tunnel_certificate(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12233,7 +12796,8 @@ pub fn modify_vpn_tunnel_options(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12255,7 +12819,8 @@ pub fn monitor_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12277,7 +12842,8 @@ pub fn move_address_to_vpc(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12299,7 +12865,8 @@ pub fn move_byoip_cidr_to_ipam(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12321,7 +12888,8 @@ pub fn provision_byoip_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12343,7 +12911,8 @@ pub fn provision_ipam_byoasn(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12365,7 +12934,8 @@ pub fn provision_ipam_pool_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12387,7 +12957,8 @@ pub fn provision_public_ipv4_pool_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12409,7 +12980,8 @@ pub fn purchase_capacity_block(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12431,7 +13003,8 @@ pub fn purchase_host_reservation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12453,7 +13026,8 @@ pub fn purchase_reserved_instances_offering(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12475,7 +13049,8 @@ pub fn purchase_scheduled_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12497,7 +13072,8 @@ pub fn reboot_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12519,7 +13095,8 @@ pub fn register_image(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12541,7 +13118,8 @@ pub fn register_instance_event_notification_attributes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12563,7 +13141,8 @@ pub fn register_transit_gateway_multicast_group_members(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12585,7 +13164,8 @@ pub fn register_transit_gateway_multicast_group_sources(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12607,7 +13187,8 @@ pub fn reject_transit_gateway_multicast_domain_associations(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12629,7 +13210,8 @@ pub fn reject_transit_gateway_peering_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12651,7 +13233,8 @@ pub fn reject_transit_gateway_vpc_attachment(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12673,7 +13256,8 @@ pub fn reject_vpc_endpoint_connections(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12695,7 +13279,8 @@ pub fn reject_vpc_peering_connection(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12717,7 +13302,8 @@ pub fn release_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12739,7 +13325,8 @@ pub fn release_hosts(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12761,7 +13348,8 @@ pub fn release_ipam_pool_allocation(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12783,7 +13371,8 @@ pub fn replace_iam_instance_profile_association(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12805,7 +13394,8 @@ pub fn replace_network_acl_association(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12827,7 +13417,8 @@ pub fn replace_network_acl_entry(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12849,7 +13440,8 @@ pub fn replace_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12871,7 +13463,8 @@ pub fn replace_route_table_association(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12893,7 +13486,8 @@ pub fn replace_transit_gateway_route(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12915,7 +13509,8 @@ pub fn replace_vpn_tunnel(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12937,7 +13532,8 @@ pub fn report_instance_status(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12959,7 +13555,8 @@ pub fn request_spot_fleet(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -12981,7 +13578,8 @@ pub fn request_spot_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13003,7 +13601,8 @@ pub fn reset_address_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13025,7 +13624,8 @@ pub fn reset_ebs_default_kms_key_id(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13047,7 +13647,8 @@ pub fn reset_fpga_image_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13069,7 +13670,8 @@ pub fn reset_image_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13091,7 +13693,8 @@ pub fn reset_instance_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13113,7 +13716,8 @@ pub fn reset_network_interface_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13135,7 +13739,8 @@ pub fn reset_snapshot_attribute(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13157,7 +13762,8 @@ pub fn restore_address_to_classic(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13179,7 +13785,8 @@ pub fn restore_image_from_recycle_bin(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13201,7 +13808,8 @@ pub fn restore_managed_prefix_list_version(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13223,7 +13831,8 @@ pub fn restore_snapshot_from_recycle_bin(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13245,7 +13854,8 @@ pub fn restore_snapshot_tier(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13267,7 +13877,8 @@ pub fn revoke_client_vpn_ingress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13289,7 +13900,8 @@ pub fn revoke_security_group_egress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13311,7 +13923,8 @@ pub fn revoke_security_group_ingress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13333,7 +13946,8 @@ pub fn run_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13355,7 +13969,8 @@ pub fn run_scheduled_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13377,7 +13992,8 @@ pub fn search_local_gateway_routes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13399,7 +14015,8 @@ pub fn search_transit_gateway_multicast_groups(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13421,7 +14038,8 @@ pub fn search_transit_gateway_routes(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13443,7 +14061,8 @@ pub fn send_diagnostic_interrupt(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13465,7 +14084,8 @@ pub fn start_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13487,7 +14107,8 @@ pub fn start_network_insights_access_scope_analysis(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13509,7 +14130,8 @@ pub fn start_network_insights_analysis(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13531,7 +14153,8 @@ pub fn start_vpc_endpoint_service_private_dns_verification(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13553,7 +14176,8 @@ pub fn stop_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13575,7 +14199,8 @@ pub fn terminate_client_vpn_connections(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13597,7 +14222,8 @@ pub fn terminate_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13619,7 +14245,8 @@ pub fn unassign_ipv6_addresses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13641,7 +14268,8 @@ pub fn unassign_private_ip_addresses(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13663,7 +14291,8 @@ pub fn unassign_private_nat_gateway_address(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13685,7 +14314,8 @@ pub fn unlock_snapshot(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13707,7 +14337,8 @@ pub fn unmonitor_instances(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13729,7 +14360,8 @@ pub fn update_security_group_rule_descriptions_egress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13751,7 +14383,8 @@ pub fn update_security_group_rule_descriptions_ingress(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -13773,7 +14406,8 @@ pub fn withdraw_byoip_cidr(
     ..headers
   ]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

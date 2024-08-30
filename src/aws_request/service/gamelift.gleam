@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -16,25 +16,35 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn accept_match(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AcceptMatch"
+  let target = metadata.service_id <> ".AcceptMatch"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -47,10 +57,11 @@ pub fn claim_game_server(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ClaimGameServer"
+  let target = metadata.service_id <> ".ClaimGameServer"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -60,10 +71,11 @@ pub fn claim_game_server(
 }
 
 pub fn create_alias(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateAlias"
+  let target = metadata.service_id <> ".CreateAlias"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -73,10 +85,11 @@ pub fn create_alias(client: Client, request_body: BitArray) -> Request(BitArray)
 }
 
 pub fn create_build(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateBuild"
+  let target = metadata.service_id <> ".CreateBuild"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -89,10 +102,11 @@ pub fn create_container_group_definition(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateContainerGroupDefinition"
+  let target = metadata.service_id <> ".CreateContainerGroupDefinition"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -102,10 +116,11 @@ pub fn create_container_group_definition(
 }
 
 pub fn create_fleet(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateFleet"
+  let target = metadata.service_id <> ".CreateFleet"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -118,10 +133,11 @@ pub fn create_fleet_locations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateFleetLocations"
+  let target = metadata.service_id <> ".CreateFleetLocations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -134,10 +150,11 @@ pub fn create_game_server_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateGameServerGroup"
+  let target = metadata.service_id <> ".CreateGameServerGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -150,10 +167,11 @@ pub fn create_game_session(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateGameSession"
+  let target = metadata.service_id <> ".CreateGameSession"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -166,10 +184,11 @@ pub fn create_game_session_queue(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateGameSessionQueue"
+  let target = metadata.service_id <> ".CreateGameSessionQueue"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -182,10 +201,11 @@ pub fn create_location(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateLocation"
+  let target = metadata.service_id <> ".CreateLocation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -198,10 +218,11 @@ pub fn create_matchmaking_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateMatchmakingConfiguration"
+  let target = metadata.service_id <> ".CreateMatchmakingConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -214,10 +235,11 @@ pub fn create_matchmaking_rule_set(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateMatchmakingRuleSet"
+  let target = metadata.service_id <> ".CreateMatchmakingRuleSet"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -230,10 +252,11 @@ pub fn create_player_session(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreatePlayerSession"
+  let target = metadata.service_id <> ".CreatePlayerSession"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -246,10 +269,11 @@ pub fn create_player_sessions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreatePlayerSessions"
+  let target = metadata.service_id <> ".CreatePlayerSessions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -262,10 +286,11 @@ pub fn create_script(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateScript"
+  let target = metadata.service_id <> ".CreateScript"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -278,10 +303,11 @@ pub fn create_vpc_peering_authorization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateVpcPeeringAuthorization"
+  let target = metadata.service_id <> ".CreateVpcPeeringAuthorization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -294,10 +320,11 @@ pub fn create_vpc_peering_connection(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateVpcPeeringConnection"
+  let target = metadata.service_id <> ".CreateVpcPeeringConnection"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -307,10 +334,11 @@ pub fn create_vpc_peering_connection(
 }
 
 pub fn delete_alias(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteAlias"
+  let target = metadata.service_id <> ".DeleteAlias"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -320,10 +348,11 @@ pub fn delete_alias(client: Client, request_body: BitArray) -> Request(BitArray)
 }
 
 pub fn delete_build(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteBuild"
+  let target = metadata.service_id <> ".DeleteBuild"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -336,10 +365,11 @@ pub fn delete_container_group_definition(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteContainerGroupDefinition"
+  let target = metadata.service_id <> ".DeleteContainerGroupDefinition"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -349,10 +379,11 @@ pub fn delete_container_group_definition(
 }
 
 pub fn delete_fleet(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteFleet"
+  let target = metadata.service_id <> ".DeleteFleet"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -365,10 +396,11 @@ pub fn delete_fleet_locations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteFleetLocations"
+  let target = metadata.service_id <> ".DeleteFleetLocations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -381,10 +413,11 @@ pub fn delete_game_server_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteGameServerGroup"
+  let target = metadata.service_id <> ".DeleteGameServerGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -397,10 +430,11 @@ pub fn delete_game_session_queue(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteGameSessionQueue"
+  let target = metadata.service_id <> ".DeleteGameSessionQueue"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -413,10 +447,11 @@ pub fn delete_location(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteLocation"
+  let target = metadata.service_id <> ".DeleteLocation"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -429,10 +464,11 @@ pub fn delete_matchmaking_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteMatchmakingConfiguration"
+  let target = metadata.service_id <> ".DeleteMatchmakingConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -445,10 +481,11 @@ pub fn delete_matchmaking_rule_set(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteMatchmakingRuleSet"
+  let target = metadata.service_id <> ".DeleteMatchmakingRuleSet"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -461,10 +498,11 @@ pub fn delete_scaling_policy(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteScalingPolicy"
+  let target = metadata.service_id <> ".DeleteScalingPolicy"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -477,10 +515,11 @@ pub fn delete_script(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteScript"
+  let target = metadata.service_id <> ".DeleteScript"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -493,10 +532,11 @@ pub fn delete_vpc_peering_authorization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteVpcPeeringAuthorization"
+  let target = metadata.service_id <> ".DeleteVpcPeeringAuthorization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -509,10 +549,11 @@ pub fn delete_vpc_peering_connection(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteVpcPeeringConnection"
+  let target = metadata.service_id <> ".DeleteVpcPeeringConnection"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -525,10 +566,11 @@ pub fn deregister_compute(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeregisterCompute"
+  let target = metadata.service_id <> ".DeregisterCompute"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -541,10 +583,11 @@ pub fn deregister_game_server(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeregisterGameServer"
+  let target = metadata.service_id <> ".DeregisterGameServer"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -557,10 +600,11 @@ pub fn describe_alias(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAlias"
+  let target = metadata.service_id <> ".DescribeAlias"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -573,10 +617,11 @@ pub fn describe_build(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeBuild"
+  let target = metadata.service_id <> ".DescribeBuild"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -589,10 +634,11 @@ pub fn describe_compute(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeCompute"
+  let target = metadata.service_id <> ".DescribeCompute"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -605,10 +651,11 @@ pub fn describe_container_group_definition(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeContainerGroupDefinition"
+  let target = metadata.service_id <> ".DescribeContainerGroupDefinition"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -621,10 +668,11 @@ pub fn describe_ec2_instance_limits(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeEC2InstanceLimits"
+  let target = metadata.service_id <> ".DescribeEC2InstanceLimits"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -637,10 +685,11 @@ pub fn describe_fleet_attributes(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeFleetAttributes"
+  let target = metadata.service_id <> ".DescribeFleetAttributes"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -653,10 +702,11 @@ pub fn describe_fleet_capacity(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeFleetCapacity"
+  let target = metadata.service_id <> ".DescribeFleetCapacity"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -669,10 +719,11 @@ pub fn describe_fleet_events(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeFleetEvents"
+  let target = metadata.service_id <> ".DescribeFleetEvents"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -685,10 +736,11 @@ pub fn describe_fleet_location_attributes(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeFleetLocationAttributes"
+  let target = metadata.service_id <> ".DescribeFleetLocationAttributes"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -701,10 +753,11 @@ pub fn describe_fleet_location_capacity(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeFleetLocationCapacity"
+  let target = metadata.service_id <> ".DescribeFleetLocationCapacity"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -717,10 +770,11 @@ pub fn describe_fleet_location_utilization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeFleetLocationUtilization"
+  let target = metadata.service_id <> ".DescribeFleetLocationUtilization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -733,10 +787,11 @@ pub fn describe_fleet_port_settings(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeFleetPortSettings"
+  let target = metadata.service_id <> ".DescribeFleetPortSettings"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -749,10 +804,11 @@ pub fn describe_fleet_utilization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeFleetUtilization"
+  let target = metadata.service_id <> ".DescribeFleetUtilization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -765,10 +821,11 @@ pub fn describe_game_server(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeGameServer"
+  let target = metadata.service_id <> ".DescribeGameServer"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -781,10 +838,11 @@ pub fn describe_game_server_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeGameServerGroup"
+  let target = metadata.service_id <> ".DescribeGameServerGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -797,10 +855,11 @@ pub fn describe_game_server_instances(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeGameServerInstances"
+  let target = metadata.service_id <> ".DescribeGameServerInstances"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -813,10 +872,11 @@ pub fn describe_game_session_details(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeGameSessionDetails"
+  let target = metadata.service_id <> ".DescribeGameSessionDetails"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -829,10 +889,11 @@ pub fn describe_game_session_placement(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeGameSessionPlacement"
+  let target = metadata.service_id <> ".DescribeGameSessionPlacement"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -845,10 +906,11 @@ pub fn describe_game_session_queues(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeGameSessionQueues"
+  let target = metadata.service_id <> ".DescribeGameSessionQueues"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -861,10 +923,11 @@ pub fn describe_game_sessions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeGameSessions"
+  let target = metadata.service_id <> ".DescribeGameSessions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -877,10 +940,11 @@ pub fn describe_instances(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeInstances"
+  let target = metadata.service_id <> ".DescribeInstances"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -893,10 +957,11 @@ pub fn describe_matchmaking(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeMatchmaking"
+  let target = metadata.service_id <> ".DescribeMatchmaking"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -909,10 +974,11 @@ pub fn describe_matchmaking_configurations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeMatchmakingConfigurations"
+  let target = metadata.service_id <> ".DescribeMatchmakingConfigurations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -925,10 +991,11 @@ pub fn describe_matchmaking_rule_sets(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeMatchmakingRuleSets"
+  let target = metadata.service_id <> ".DescribeMatchmakingRuleSets"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -941,10 +1008,11 @@ pub fn describe_player_sessions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribePlayerSessions"
+  let target = metadata.service_id <> ".DescribePlayerSessions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -957,10 +1025,11 @@ pub fn describe_runtime_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeRuntimeConfiguration"
+  let target = metadata.service_id <> ".DescribeRuntimeConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -973,10 +1042,11 @@ pub fn describe_scaling_policies(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeScalingPolicies"
+  let target = metadata.service_id <> ".DescribeScalingPolicies"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -989,10 +1059,11 @@ pub fn describe_script(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeScript"
+  let target = metadata.service_id <> ".DescribeScript"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1005,10 +1076,11 @@ pub fn describe_vpc_peering_authorizations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeVpcPeeringAuthorizations"
+  let target = metadata.service_id <> ".DescribeVpcPeeringAuthorizations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1021,10 +1093,11 @@ pub fn describe_vpc_peering_connections(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeVpcPeeringConnections"
+  let target = metadata.service_id <> ".DescribeVpcPeeringConnections"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1037,10 +1110,11 @@ pub fn get_compute_access(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetComputeAccess"
+  let target = metadata.service_id <> ".GetComputeAccess"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1053,10 +1127,11 @@ pub fn get_compute_auth_token(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetComputeAuthToken"
+  let target = metadata.service_id <> ".GetComputeAuthToken"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1069,10 +1144,11 @@ pub fn get_game_session_log_url(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetGameSessionLogUrl"
+  let target = metadata.service_id <> ".GetGameSessionLogUrl"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1085,10 +1161,11 @@ pub fn get_instance_access(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".GetInstanceAccess"
+  let target = metadata.service_id <> ".GetInstanceAccess"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1098,10 +1175,11 @@ pub fn get_instance_access(
 }
 
 pub fn list_aliases(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListAliases"
+  let target = metadata.service_id <> ".ListAliases"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1111,10 +1189,11 @@ pub fn list_aliases(client: Client, request_body: BitArray) -> Request(BitArray)
 }
 
 pub fn list_builds(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListBuilds"
+  let target = metadata.service_id <> ".ListBuilds"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1124,10 +1203,11 @@ pub fn list_builds(client: Client, request_body: BitArray) -> Request(BitArray) 
 }
 
 pub fn list_compute(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListCompute"
+  let target = metadata.service_id <> ".ListCompute"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1140,10 +1220,11 @@ pub fn list_container_group_definitions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListContainerGroupDefinitions"
+  let target = metadata.service_id <> ".ListContainerGroupDefinitions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1153,10 +1234,11 @@ pub fn list_container_group_definitions(
 }
 
 pub fn list_fleets(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListFleets"
+  let target = metadata.service_id <> ".ListFleets"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1169,10 +1251,11 @@ pub fn list_game_server_groups(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListGameServerGroups"
+  let target = metadata.service_id <> ".ListGameServerGroups"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1185,10 +1268,11 @@ pub fn list_game_servers(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListGameServers"
+  let target = metadata.service_id <> ".ListGameServers"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1201,10 +1285,11 @@ pub fn list_locations(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListLocations"
+  let target = metadata.service_id <> ".ListLocations"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1214,10 +1299,11 @@ pub fn list_locations(
 }
 
 pub fn list_scripts(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListScripts"
+  let target = metadata.service_id <> ".ListScripts"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1230,10 +1316,11 @@ pub fn list_tags_for_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListTagsForResource"
+  let target = metadata.service_id <> ".ListTagsForResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1246,10 +1333,11 @@ pub fn put_scaling_policy(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".PutScalingPolicy"
+  let target = metadata.service_id <> ".PutScalingPolicy"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1262,10 +1350,11 @@ pub fn register_compute(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RegisterCompute"
+  let target = metadata.service_id <> ".RegisterCompute"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1278,10 +1367,11 @@ pub fn register_game_server(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RegisterGameServer"
+  let target = metadata.service_id <> ".RegisterGameServer"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1294,10 +1384,11 @@ pub fn request_upload_credentials(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".RequestUploadCredentials"
+  let target = metadata.service_id <> ".RequestUploadCredentials"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1310,10 +1401,11 @@ pub fn resolve_alias(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ResolveAlias"
+  let target = metadata.service_id <> ".ResolveAlias"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1326,10 +1418,11 @@ pub fn resume_game_server_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ResumeGameServerGroup"
+  let target = metadata.service_id <> ".ResumeGameServerGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1342,10 +1435,11 @@ pub fn search_game_sessions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".SearchGameSessions"
+  let target = metadata.service_id <> ".SearchGameSessions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1358,10 +1452,11 @@ pub fn start_fleet_actions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartFleetActions"
+  let target = metadata.service_id <> ".StartFleetActions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1374,10 +1469,11 @@ pub fn start_game_session_placement(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartGameSessionPlacement"
+  let target = metadata.service_id <> ".StartGameSessionPlacement"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1390,10 +1486,11 @@ pub fn start_match_backfill(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartMatchBackfill"
+  let target = metadata.service_id <> ".StartMatchBackfill"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1406,10 +1503,11 @@ pub fn start_matchmaking(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartMatchmaking"
+  let target = metadata.service_id <> ".StartMatchmaking"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1422,10 +1520,11 @@ pub fn stop_fleet_actions(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StopFleetActions"
+  let target = metadata.service_id <> ".StopFleetActions"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1438,10 +1537,11 @@ pub fn stop_game_session_placement(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StopGameSessionPlacement"
+  let target = metadata.service_id <> ".StopGameSessionPlacement"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1454,10 +1554,11 @@ pub fn stop_matchmaking(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StopMatchmaking"
+  let target = metadata.service_id <> ".StopMatchmaking"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1470,10 +1571,11 @@ pub fn suspend_game_server_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".SuspendGameServerGroup"
+  let target = metadata.service_id <> ".SuspendGameServerGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1483,10 +1585,11 @@ pub fn suspend_game_server_group(
 }
 
 pub fn tag_resource(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".TagResource"
+  let target = metadata.service_id <> ".TagResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1499,10 +1602,11 @@ pub fn untag_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UntagResource"
+  let target = metadata.service_id <> ".UntagResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1512,10 +1616,11 @@ pub fn untag_resource(
 }
 
 pub fn update_alias(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateAlias"
+  let target = metadata.service_id <> ".UpdateAlias"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1525,10 +1630,11 @@ pub fn update_alias(client: Client, request_body: BitArray) -> Request(BitArray)
 }
 
 pub fn update_build(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateBuild"
+  let target = metadata.service_id <> ".UpdateBuild"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1541,10 +1647,11 @@ pub fn update_fleet_attributes(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateFleetAttributes"
+  let target = metadata.service_id <> ".UpdateFleetAttributes"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1557,10 +1664,11 @@ pub fn update_fleet_capacity(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateFleetCapacity"
+  let target = metadata.service_id <> ".UpdateFleetCapacity"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1573,10 +1681,11 @@ pub fn update_fleet_port_settings(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateFleetPortSettings"
+  let target = metadata.service_id <> ".UpdateFleetPortSettings"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1589,10 +1698,11 @@ pub fn update_game_server(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateGameServer"
+  let target = metadata.service_id <> ".UpdateGameServer"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1605,10 +1715,11 @@ pub fn update_game_server_group(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateGameServerGroup"
+  let target = metadata.service_id <> ".UpdateGameServerGroup"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1621,10 +1732,11 @@ pub fn update_game_session(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateGameSession"
+  let target = metadata.service_id <> ".UpdateGameSession"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1637,10 +1749,11 @@ pub fn update_game_session_queue(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateGameSessionQueue"
+  let target = metadata.service_id <> ".UpdateGameSessionQueue"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1653,10 +1766,11 @@ pub fn update_matchmaking_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateMatchmakingConfiguration"
+  let target = metadata.service_id <> ".UpdateMatchmakingConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1669,10 +1783,11 @@ pub fn update_runtime_configuration(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateRuntimeConfiguration"
+  let target = metadata.service_id <> ".UpdateRuntimeConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1685,10 +1800,11 @@ pub fn update_script(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateScript"
+  let target = metadata.service_id <> ".UpdateScript"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -1701,10 +1817,11 @@ pub fn validate_matchmaking_rule_set(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ValidateMatchmakingRuleSet"
+  let target = metadata.service_id <> ".ValidateMatchmakingRuleSet"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -16,29 +16,38 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn add_application_cloud_watch_logging_option(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".AddApplicationCloudWatchLoggingOption"
+  let target = metadata.service_id <> ".AddApplicationCloudWatchLoggingOption"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -51,10 +60,11 @@ pub fn add_application_input(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AddApplicationInput"
+  let target = metadata.service_id <> ".AddApplicationInput"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -68,10 +78,11 @@ pub fn add_application_input_processing_configuration(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id <> ".AddApplicationInputProcessingConfiguration"
+    metadata.service_id <> ".AddApplicationInputProcessingConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -84,10 +95,11 @@ pub fn add_application_output(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AddApplicationOutput"
+  let target = metadata.service_id <> ".AddApplicationOutput"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -100,10 +112,11 @@ pub fn add_application_reference_data_source(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".AddApplicationReferenceDataSource"
+  let target = metadata.service_id <> ".AddApplicationReferenceDataSource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -116,10 +129,11 @@ pub fn create_application(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".CreateApplication"
+  let target = metadata.service_id <> ".CreateApplication"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -132,10 +146,11 @@ pub fn delete_application(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteApplication"
+  let target = metadata.service_id <> ".DeleteApplication"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -149,10 +164,11 @@ pub fn delete_application_cloud_watch_logging_option(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id <> ".DeleteApplicationCloudWatchLoggingOption"
+    metadata.service_id <> ".DeleteApplicationCloudWatchLoggingOption"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -166,11 +182,11 @@ pub fn delete_application_input_processing_configuration(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id
-    <> ".DeleteApplicationInputProcessingConfiguration"
+    metadata.service_id <> ".DeleteApplicationInputProcessingConfiguration"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -183,10 +199,11 @@ pub fn delete_application_output(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DeleteApplicationOutput"
+  let target = metadata.service_id <> ".DeleteApplicationOutput"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -199,11 +216,11 @@ pub fn delete_application_reference_data_source(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DeleteApplicationReferenceDataSource"
+  let target = metadata.service_id <> ".DeleteApplicationReferenceDataSource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -216,10 +233,11 @@ pub fn describe_application(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeApplication"
+  let target = metadata.service_id <> ".DescribeApplication"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -232,10 +250,11 @@ pub fn discover_input_schema(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DiscoverInputSchema"
+  let target = metadata.service_id <> ".DiscoverInputSchema"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -248,10 +267,11 @@ pub fn list_applications(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListApplications"
+  let target = metadata.service_id <> ".ListApplications"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -264,10 +284,11 @@ pub fn list_tags_for_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".ListTagsForResource"
+  let target = metadata.service_id <> ".ListTagsForResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -280,10 +301,11 @@ pub fn start_application(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StartApplication"
+  let target = metadata.service_id <> ".StartApplication"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -296,10 +318,11 @@ pub fn stop_application(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".StopApplication"
+  let target = metadata.service_id <> ".StopApplication"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -309,10 +332,11 @@ pub fn stop_application(
 }
 
 pub fn tag_resource(client: Client, request_body: BitArray) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".TagResource"
+  let target = metadata.service_id <> ".TagResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -325,10 +349,11 @@ pub fn untag_resource(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UntagResource"
+  let target = metadata.service_id <> ".UntagResource"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -341,10 +366,11 @@ pub fn update_application(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".UpdateApplication"
+  let target = metadata.service_id <> ".UpdateApplication"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

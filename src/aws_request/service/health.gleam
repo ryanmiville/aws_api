@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http
 import gleam/http/request.{type Request}
 import gleam/option.{None, Some}
@@ -18,29 +18,38 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn describe_affected_accounts_for_organization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeAffectedAccountsForOrganization"
+  let target = metadata.service_id <> ".DescribeAffectedAccountsForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -53,10 +62,11 @@ pub fn describe_affected_entities(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeAffectedEntities"
+  let target = metadata.service_id <> ".DescribeAffectedEntities"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -69,11 +79,11 @@ pub fn describe_affected_entities_for_organization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeAffectedEntitiesForOrganization"
+  let target = metadata.service_id <> ".DescribeAffectedEntitiesForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -86,10 +96,11 @@ pub fn describe_entity_aggregates(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeEntityAggregates"
+  let target = metadata.service_id <> ".DescribeEntityAggregates"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -102,11 +113,11 @@ pub fn describe_entity_aggregates_for_organization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeEntityAggregatesForOrganization"
+  let target = metadata.service_id <> ".DescribeEntityAggregatesForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -119,10 +130,11 @@ pub fn describe_event_aggregates(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeEventAggregates"
+  let target = metadata.service_id <> ".DescribeEventAggregates"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -135,10 +147,11 @@ pub fn describe_event_details(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeEventDetails"
+  let target = metadata.service_id <> ".DescribeEventDetails"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -151,11 +164,11 @@ pub fn describe_event_details_for_organization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target =
-    client.builder.service_id <> ".DescribeEventDetailsForOrganization"
+  let target = metadata.service_id <> ".DescribeEventDetailsForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -168,10 +181,11 @@ pub fn describe_events(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeEvents"
+  let target = metadata.service_id <> ".DescribeEvents"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -184,10 +198,11 @@ pub fn describe_events_for_organization(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeEventsForOrganization"
+  let target = metadata.service_id <> ".DescribeEventsForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -200,10 +215,11 @@ pub fn describe_event_types(
   client: Client,
   request_body: BitArray,
 ) -> Request(BitArray) {
-  let target = client.builder.service_id <> ".DescribeEventTypes"
+  let target = metadata.service_id <> ".DescribeEventTypes"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -217,10 +233,11 @@ pub fn describe_health_service_status_for_organization(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id <> ".DescribeHealthServiceStatusForOrganization"
+    metadata.service_id <> ".DescribeHealthServiceStatusForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -234,10 +251,11 @@ pub fn disable_health_service_access_for_organization(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id <> ".DisableHealthServiceAccessForOrganization"
+    metadata.service_id <> ".DisableHealthServiceAccessForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,
@@ -251,10 +269,11 @@ pub fn enable_health_service_access_for_organization(
   request_body: BitArray,
 ) -> Request(BitArray) {
   let target =
-    client.builder.service_id <> ".EnableHealthServiceAccessForOrganization"
+    metadata.service_id <> ".EnableHealthServiceAccessForOrganization"
   let headers = [#("X-Amz-Target", target), #("content-type", content_type)]
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     "",
     headers,

@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
 import gleam/option.{type Option}
@@ -15,18 +15,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn associate_alias(
@@ -45,7 +54,8 @@ pub fn associate_alias(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -70,7 +80,8 @@ pub fn copy_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -90,7 +101,8 @@ pub fn create_cache_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -110,7 +122,8 @@ pub fn create_cloud_front_origin_access_identity(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -130,7 +143,8 @@ pub fn create_continuous_deployment_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -150,7 +164,8 @@ pub fn create_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -170,7 +185,8 @@ pub fn create_distribution_with_tags(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -190,7 +206,8 @@ pub fn create_field_level_encryption_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -210,7 +227,8 @@ pub fn create_field_level_encryption_profile(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -229,7 +247,8 @@ pub fn create_function(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -255,7 +274,8 @@ pub fn create_invalidation(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -275,7 +295,8 @@ pub fn create_key_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -294,7 +315,8 @@ pub fn create_key_value_store(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -320,7 +342,8 @@ pub fn create_monitoring_subscription(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -340,7 +363,8 @@ pub fn create_origin_access_control(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -360,7 +384,8 @@ pub fn create_origin_request_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -380,7 +405,8 @@ pub fn create_public_key(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -399,7 +425,8 @@ pub fn create_realtime_log_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -419,7 +446,8 @@ pub fn create_response_headers_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -439,7 +467,8 @@ pub fn create_streaming_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -459,7 +488,8 @@ pub fn create_streaming_distribution_with_tags(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -479,7 +509,8 @@ pub fn delete_cache_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -500,7 +531,8 @@ pub fn delete_cloud_front_origin_access_identity(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -521,7 +553,8 @@ pub fn delete_continuous_deployment_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -541,7 +574,8 @@ pub fn delete_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -561,7 +595,8 @@ pub fn delete_field_level_encryption_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -582,7 +617,8 @@ pub fn delete_field_level_encryption_profile(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -602,7 +638,8 @@ pub fn delete_function(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -622,7 +659,8 @@ pub fn delete_key_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -642,7 +680,8 @@ pub fn delete_key_value_store(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -667,7 +706,8 @@ pub fn delete_monitoring_subscription(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -687,7 +727,8 @@ pub fn delete_origin_access_control(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -707,7 +748,8 @@ pub fn delete_origin_request_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -727,7 +769,8 @@ pub fn delete_public_key(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -746,7 +789,8 @@ pub fn delete_realtime_log_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -766,7 +810,8 @@ pub fn delete_response_headers_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -786,7 +831,8 @@ pub fn delete_streaming_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -806,7 +852,8 @@ pub fn describe_function(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -826,7 +873,8 @@ pub fn describe_key_value_store(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -846,7 +894,8 @@ pub fn get_cache_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -866,7 +915,8 @@ pub fn get_cache_policy_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -887,7 +937,8 @@ pub fn get_cloud_front_origin_access_identity(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -912,7 +963,8 @@ pub fn get_cloud_front_origin_access_identity_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -933,7 +985,8 @@ pub fn get_continuous_deployment_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -954,7 +1007,8 @@ pub fn get_continuous_deployment_policy_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -974,7 +1028,8 @@ pub fn get_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -994,7 +1049,8 @@ pub fn get_distribution_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1014,7 +1070,8 @@ pub fn get_field_level_encryption(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1035,7 +1092,8 @@ pub fn get_field_level_encryption_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1056,7 +1114,8 @@ pub fn get_field_level_encryption_profile(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1077,7 +1136,8 @@ pub fn get_field_level_encryption_profile_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1097,7 +1157,8 @@ pub fn get_function(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1125,7 +1186,8 @@ pub fn get_invalidation(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1145,7 +1207,8 @@ pub fn get_key_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1165,7 +1228,8 @@ pub fn get_key_group_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1190,7 +1254,8 @@ pub fn get_monitoring_subscription(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1210,7 +1275,8 @@ pub fn get_origin_access_control(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1231,7 +1297,8 @@ pub fn get_origin_access_control_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1251,7 +1318,8 @@ pub fn get_origin_request_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1272,7 +1340,8 @@ pub fn get_origin_request_policy_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1292,7 +1361,8 @@ pub fn get_public_key(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1312,7 +1382,8 @@ pub fn get_public_key_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1331,7 +1402,8 @@ pub fn get_realtime_log_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1351,7 +1423,8 @@ pub fn get_response_headers_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1372,7 +1445,8 @@ pub fn get_response_headers_policy_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1392,7 +1466,8 @@ pub fn get_streaming_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1413,7 +1488,8 @@ pub fn get_streaming_distribution_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1432,7 +1508,8 @@ pub fn list_cache_policies(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1451,7 +1528,8 @@ pub fn list_cloud_front_origin_access_identities(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1470,7 +1548,8 @@ pub fn list_conflicting_aliases(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1489,7 +1568,8 @@ pub fn list_continuous_deployment_policies(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1508,7 +1588,8 @@ pub fn list_distributions(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1533,7 +1614,8 @@ pub fn list_distributions_by_cache_policy_id(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1554,7 +1636,8 @@ pub fn list_distributions_by_key_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1579,7 +1662,8 @@ pub fn list_distributions_by_origin_request_policy_id(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1598,7 +1682,8 @@ pub fn list_distributions_by_realtime_log_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1623,7 +1708,8 @@ pub fn list_distributions_by_response_headers_policy_id(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1644,7 +1730,8 @@ pub fn list_distributions_by_web_acl_id(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1663,7 +1750,8 @@ pub fn list_field_level_encryption_configs(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1682,7 +1770,8 @@ pub fn list_field_level_encryption_profiles(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1701,7 +1790,8 @@ pub fn list_functions(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1726,7 +1816,8 @@ pub fn list_invalidations(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1745,7 +1836,8 @@ pub fn list_key_groups(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1764,7 +1856,8 @@ pub fn list_key_value_stores(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1783,7 +1876,8 @@ pub fn list_origin_access_controls(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1802,7 +1896,8 @@ pub fn list_origin_request_policies(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1821,7 +1916,8 @@ pub fn list_public_keys(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1840,7 +1936,8 @@ pub fn list_realtime_log_configs(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1859,7 +1956,8 @@ pub fn list_response_headers_policies(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1878,7 +1976,8 @@ pub fn list_streaming_distributions(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1897,7 +1996,8 @@ pub fn list_tags_for_resource(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1917,7 +2017,8 @@ pub fn publish_function(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1937,7 +2038,8 @@ pub fn tag_resource(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1957,7 +2059,8 @@ pub fn test_function(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1977,7 +2080,8 @@ pub fn untag_resource(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1998,7 +2102,8 @@ pub fn update_cache_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2024,7 +2129,8 @@ pub fn update_cloud_front_origin_access_identity(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2046,7 +2152,8 @@ pub fn update_continuous_deployment_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2067,7 +2174,8 @@ pub fn update_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2088,7 +2196,8 @@ pub fn update_distribution_with_staging_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2110,7 +2219,8 @@ pub fn update_field_level_encryption_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2132,7 +2242,8 @@ pub fn update_field_level_encryption_profile(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2152,7 +2263,8 @@ pub fn update_function(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2173,7 +2285,8 @@ pub fn update_key_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2193,7 +2306,8 @@ pub fn update_key_value_store(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2215,7 +2329,8 @@ pub fn update_origin_access_control(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2236,7 +2351,8 @@ pub fn update_origin_request_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2257,7 +2373,8 @@ pub fn update_public_key(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2276,7 +2393,8 @@ pub fn update_realtime_log_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2297,7 +2415,8 @@ pub fn update_response_headers_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -2319,7 +2438,8 @@ pub fn update_streaming_distribution(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,

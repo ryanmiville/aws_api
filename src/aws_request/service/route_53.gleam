@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
 import gleam/option.{type Option}
@@ -15,18 +15,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn activate_key_signing_key(
@@ -48,7 +57,8 @@ pub fn activate_key_signing_key(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -69,7 +79,8 @@ pub fn associate_vpc_with_hosted_zone(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -89,7 +100,8 @@ pub fn change_cidr_collection(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -110,7 +122,8 @@ pub fn change_resource_record_sets(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -132,7 +145,8 @@ pub fn change_tags_for_resource(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -151,7 +165,8 @@ pub fn create_cidr_collection(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -170,7 +185,8 @@ pub fn create_health_check(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -189,7 +205,8 @@ pub fn create_hosted_zone(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -208,7 +225,8 @@ pub fn create_key_signing_key(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -227,7 +245,8 @@ pub fn create_query_logging_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -246,7 +265,8 @@ pub fn create_reusable_delegation_set(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -265,7 +285,8 @@ pub fn create_traffic_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -284,7 +305,8 @@ pub fn create_traffic_policy_instance(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -304,7 +326,8 @@ pub fn create_traffic_policy_version(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -329,7 +352,8 @@ pub fn create_vpc_association_authorization(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -357,7 +381,8 @@ pub fn deactivate_key_signing_key(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -377,7 +402,8 @@ pub fn delete_cidr_collection(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -397,7 +423,8 @@ pub fn delete_health_check(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -417,7 +444,8 @@ pub fn delete_hosted_zone(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -439,7 +467,8 @@ pub fn delete_key_signing_key(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -459,7 +488,8 @@ pub fn delete_query_logging_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -479,7 +509,8 @@ pub fn delete_reusable_delegation_set(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -500,7 +531,8 @@ pub fn delete_traffic_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -520,7 +552,8 @@ pub fn delete_traffic_policy_instance(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -545,7 +578,8 @@ pub fn delete_vpc_association_authorization(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -566,7 +600,8 @@ pub fn disable_hosted_zone_dnssec(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -591,7 +626,8 @@ pub fn disassociate_vpc_from_hosted_zone(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -612,7 +648,8 @@ pub fn enable_hosted_zone_dnssec(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -632,7 +669,8 @@ pub fn get_account_limit(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -652,7 +690,8 @@ pub fn get_change(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -671,7 +710,8 @@ pub fn get_checker_ip_ranges(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -692,7 +732,8 @@ pub fn get_dnssec(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -711,7 +752,8 @@ pub fn get_geo_location(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -731,7 +773,8 @@ pub fn get_health_check(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -750,7 +793,8 @@ pub fn get_health_check_count(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -775,7 +819,8 @@ pub fn get_health_check_last_failure_reason(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -796,7 +841,8 @@ pub fn get_health_check_status(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -816,7 +862,8 @@ pub fn get_hosted_zone(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -835,7 +882,8 @@ pub fn get_hosted_zone_count(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -863,7 +911,8 @@ pub fn get_hosted_zone_limit(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -883,7 +932,8 @@ pub fn get_query_logging_config(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -903,7 +953,8 @@ pub fn get_reusable_delegation_set(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -931,7 +982,8 @@ pub fn get_reusable_delegation_set_limit(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -952,7 +1004,8 @@ pub fn get_traffic_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -972,7 +1025,8 @@ pub fn get_traffic_policy_instance(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -991,7 +1045,8 @@ pub fn get_traffic_policy_instance_count(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1012,7 +1067,8 @@ pub fn list_cidr_blocks(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1031,7 +1087,8 @@ pub fn list_cidr_collections(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1051,7 +1108,8 @@ pub fn list_cidr_locations(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1070,7 +1128,8 @@ pub fn list_geo_locations(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1089,7 +1148,8 @@ pub fn list_health_checks(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1108,7 +1168,8 @@ pub fn list_hosted_zones(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1127,7 +1188,8 @@ pub fn list_hosted_zones_by_name(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1146,7 +1208,8 @@ pub fn list_hosted_zones_by_vpc(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1165,7 +1228,8 @@ pub fn list_query_logging_configs(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1186,7 +1250,8 @@ pub fn list_resource_record_sets(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1205,7 +1270,8 @@ pub fn list_reusable_delegation_sets(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1227,7 +1293,8 @@ pub fn list_tags_for_resource(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1247,7 +1314,8 @@ pub fn list_tags_for_resources(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1266,7 +1334,8 @@ pub fn list_traffic_policies(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1285,7 +1354,8 @@ pub fn list_traffic_policy_instances(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1304,7 +1374,8 @@ pub fn list_traffic_policy_instances_by_hosted_zone(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1323,7 +1394,8 @@ pub fn list_traffic_policy_instances_by_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1343,7 +1415,8 @@ pub fn list_traffic_policy_versions(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1368,7 +1441,8 @@ pub fn list_vpc_association_authorizations(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1387,7 +1461,8 @@ pub fn test_dns_answer(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1407,7 +1482,8 @@ pub fn update_health_check(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1427,7 +1503,8 @@ pub fn update_hosted_zone_comment(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1448,7 +1525,8 @@ pub fn update_traffic_policy_comment(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1468,7 +1546,8 @@ pub fn update_traffic_policy_instance(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,

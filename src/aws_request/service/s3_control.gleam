@@ -1,7 +1,7 @@
-import aws_request/config.{type Config}
+import aws4_request.{type Signer}
 import aws_request/internal/endpoint
 import aws_request/internal/metadata.{Metadata}
-import aws_request/internal/request_builder.{type RequestBuilder, RequestBuilder}
+import aws_request/internal/request_builder
 import gleam/http.{type Header}
 import gleam/http/request.{type Request}
 import gleam/option.{type Option}
@@ -15,18 +15,27 @@ const metadata = Metadata(
 )
 
 pub opaque type Client {
-  Client(builder: RequestBuilder)
+  Client(signer: Signer, endpoint: String)
 }
 
-pub fn new(config: Config) -> Client {
-  let endpoint = endpoint.from(config, metadata)
-  RequestBuilder(
-    config.access_key_id,
-    config.secret_access_key,
-    metadata.service_id,
-    endpoint,
-  )
-  |> Client
+pub fn new(
+  access_key_id access_key_id: String,
+  secret_access_key secret_access_key: String,
+  region region: String,
+) -> Client {
+  let signer =
+    aws4_request.signer(
+      access_key_id:,
+      secret_access_key:,
+      region:,
+      service: metadata.signing_name,
+    )
+  let #(signer, endpoint) = endpoint.resolve(signer, metadata)
+  Client(signer:, endpoint:)
+}
+
+pub fn with_custom_endpoint(client: Client, custom_endpoint: String) -> Client {
+  Client(..client, endpoint: custom_endpoint)
 }
 
 pub fn associate_access_grants_identity_center(
@@ -39,7 +48,8 @@ pub fn associate_access_grants_identity_center(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -58,7 +68,8 @@ pub fn create_access_grant(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -77,7 +88,8 @@ pub fn create_access_grants_instance(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -96,7 +108,8 @@ pub fn create_access_grants_location(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -116,7 +129,8 @@ pub fn create_access_point(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -136,7 +150,8 @@ pub fn create_access_point_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -157,7 +172,8 @@ pub fn create_bucket(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -176,7 +192,8 @@ pub fn create_job(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -195,7 +212,8 @@ pub fn create_multi_region_access_point(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -214,7 +232,8 @@ pub fn create_storage_lens_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -239,7 +258,8 @@ pub fn delete_access_grant(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -258,7 +278,8 @@ pub fn delete_access_grants_instance(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -277,7 +298,8 @@ pub fn delete_access_grants_instance_resource_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -302,7 +324,8 @@ pub fn delete_access_grants_location(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -322,7 +345,8 @@ pub fn delete_access_point(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -342,7 +366,8 @@ pub fn delete_access_point_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -362,7 +387,8 @@ pub fn delete_access_point_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -383,7 +409,8 @@ pub fn delete_access_point_policy_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -403,7 +430,8 @@ pub fn delete_bucket(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -424,7 +452,8 @@ pub fn delete_bucket_lifecycle_configuration(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -444,7 +473,8 @@ pub fn delete_bucket_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -464,7 +494,8 @@ pub fn delete_bucket_replication(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -484,7 +515,8 @@ pub fn delete_bucket_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -504,7 +536,8 @@ pub fn delete_job_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -523,7 +556,8 @@ pub fn delete_multi_region_access_point(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -542,7 +576,8 @@ pub fn delete_public_access_block(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -562,7 +597,8 @@ pub fn delete_storage_lens_configuration(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -582,7 +618,8 @@ pub fn delete_storage_lens_configuration_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -602,7 +639,8 @@ pub fn delete_storage_lens_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -622,7 +660,8 @@ pub fn describe_job(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -643,7 +682,8 @@ pub fn describe_multi_region_access_point_operation(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -662,7 +702,8 @@ pub fn dissociate_access_grants_identity_center(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -687,7 +728,8 @@ pub fn get_access_grant(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -706,7 +748,8 @@ pub fn get_access_grants_instance(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -725,7 +768,8 @@ pub fn get_access_grants_instance_for_prefix(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -744,7 +788,8 @@ pub fn get_access_grants_instance_resource_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -769,7 +814,8 @@ pub fn get_access_grants_location(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -789,7 +835,8 @@ pub fn get_access_point(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -814,7 +861,8 @@ pub fn get_access_point_configuration_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -834,7 +882,8 @@ pub fn get_access_point_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -854,7 +903,8 @@ pub fn get_access_point_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -875,7 +925,8 @@ pub fn get_access_point_policy_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -895,7 +946,8 @@ pub fn get_access_point_policy_status(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -920,7 +972,8 @@ pub fn get_access_point_policy_status_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -940,7 +993,8 @@ pub fn get_bucket(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -961,7 +1015,8 @@ pub fn get_bucket_lifecycle_configuration(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -981,7 +1036,8 @@ pub fn get_bucket_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1001,7 +1057,8 @@ pub fn get_bucket_replication(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1021,7 +1078,8 @@ pub fn get_bucket_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1041,7 +1099,8 @@ pub fn get_bucket_versioning(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1060,7 +1119,8 @@ pub fn get_data_access(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1080,7 +1140,8 @@ pub fn get_job_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1100,7 +1161,8 @@ pub fn get_multi_region_access_point(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1120,7 +1182,8 @@ pub fn get_multi_region_access_point_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1141,7 +1204,8 @@ pub fn get_multi_region_access_point_policy_status(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1161,7 +1225,8 @@ pub fn get_multi_region_access_point_routes(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1180,7 +1245,8 @@ pub fn get_public_access_block(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1200,7 +1266,8 @@ pub fn get_storage_lens_configuration(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1220,7 +1287,8 @@ pub fn get_storage_lens_configuration_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1240,7 +1308,8 @@ pub fn get_storage_lens_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1259,7 +1328,8 @@ pub fn list_access_grants(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1278,7 +1348,8 @@ pub fn list_access_grants_instances(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1297,7 +1368,8 @@ pub fn list_access_grants_locations(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1316,7 +1388,8 @@ pub fn list_access_points(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1335,7 +1408,8 @@ pub fn list_access_points_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1354,7 +1428,8 @@ pub fn list_jobs(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1373,7 +1448,8 @@ pub fn list_multi_region_access_points(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1392,7 +1468,8 @@ pub fn list_regional_buckets(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1411,7 +1488,8 @@ pub fn list_storage_lens_configurations(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1430,7 +1508,8 @@ pub fn list_storage_lens_groups(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1450,7 +1529,8 @@ pub fn list_tags_for_resource(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Get,
     path,
     headers,
@@ -1469,7 +1549,8 @@ pub fn put_access_grants_instance_resource_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1494,7 +1575,8 @@ pub fn put_access_point_configuration_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1514,7 +1596,8 @@ pub fn put_access_point_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1535,7 +1618,8 @@ pub fn put_access_point_policy_for_object_lambda(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1557,7 +1641,8 @@ pub fn put_bucket_lifecycle_configuration(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1577,7 +1662,8 @@ pub fn put_bucket_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1598,7 +1684,8 @@ pub fn put_bucket_replication(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1619,7 +1706,8 @@ pub fn put_bucket_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1640,7 +1728,8 @@ pub fn put_bucket_versioning(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1660,7 +1749,8 @@ pub fn put_job_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1679,7 +1769,8 @@ pub fn put_multi_region_access_point_policy(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1699,7 +1790,8 @@ pub fn put_public_access_block(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1719,7 +1811,8 @@ pub fn put_storage_lens_configuration(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1739,7 +1832,8 @@ pub fn put_storage_lens_configuration_tagging(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1759,7 +1853,8 @@ pub fn submit_multi_region_access_point_routes(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Patch,
     path,
     headers,
@@ -1779,7 +1874,8 @@ pub fn tag_resource(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1799,7 +1895,8 @@ pub fn untag_resource(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Delete,
     path,
     headers,
@@ -1824,7 +1921,8 @@ pub fn update_access_grants_location(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
@@ -1844,7 +1942,8 @@ pub fn update_job_priority(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1864,7 +1963,8 @@ pub fn update_job_status(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Post,
     path,
     headers,
@@ -1884,7 +1984,8 @@ pub fn update_storage_lens_group(
   let headers = [#("content-type", "application/xml"), ..headers]
 
   request_builder.build(
-    client.builder,
+    client.signer,
+    client.endpoint,
     http.Put,
     path,
     headers,
